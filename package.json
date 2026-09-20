@@ -1,0 +1,50 @@
+{
+  "name": "softspot-desktop-pet",
+  "version": "0.1.0",
+  "description": "A photo-to-companion desktop pet demo for macOS and Windows",
+  "private": true,
+  "author": "Damian Dicky",
+  "license": "UNLICENSED",
+  "main": "electron/main.cjs",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test:e2e": "node scripts/smoke.mjs",
+    "pack:mac": "electron-builder --mac dir",
+    "pack:win": "electron-builder --win zip --x64",
+    "dist:mac": "electron-builder --mac zip --arm64 --x64"
+  },
+  "devDependencies": {
+    "electron": "44.4.3",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0"
+  },
+  "build": {
+    "appId": "dev.dickysblog.softspot",
+    "productName": "Softspot",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "mac": {
+      "category": "public.app-category.entertainment",
+      "identity": null,
+      "target": [
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "zip"
+      ],
+      "signAndEditExecutable": false
+    }
+  }
+}

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Softspot · 你的小伙伴</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Softspot 首页"
+        ><span class="brand-mark">s.</span>softspot<span class="brand-caption">桌面小伙伴</span></a
+      >
+      <div class="top-actions">
+        <span id="connection" class="connection">本地互动</span
+        ><button id="settings-open" class="text-button">连接 AI <span>↗</span></button>
+      </div>
+    </header>
+    <main class="workspace">
+      <section class="habitat" aria-label="桌宠预览">
+        <div class="habitat-heading">
+          <span class="eyebrow">YOUR LITTLE COMPANION</span
+          ><span id="days" class="days">相遇第 1 天</span>
+        </div>
+        <div class="introduction">
+          <h1>小小一只，<br />陪你过日常。</h1>
+          <p>给喜欢的模样，一个温柔的性格。</p>
+        </div>
+        <div class="pet-stage">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="speech" id="bubble" aria-live="polite">我在这里，陪你慢慢来。</div>
+          <button class="pet-touch" id="pet-touch" aria-label="摸摸桌宠">
+            <canvas class="pet-image" id="mascot" aria-label="绒绒，一只围着红围巾的小猫"></canvas>
+            <img class="pet-image" id="pet-image" alt="你的桌宠" draggable="false" hidden />
+            <span class="pet-shadow"></span>
+          </button>
+          <span id="emotion-label" class="emotion-label">● 安心陪伴</span>
+          <span class="stage-caption">轻轻点一下，摸摸它</span>
+        </div>
+        <div class="care-actions" aria-label="照顾桌宠">
+          <button data-action="pet"><span>♡</span>摸摸</button>
+          <button data-action="feed"><span>♧</span>喂点心</button>
+          <button data-action="play"><span>✧</span>一起玩</button>
+          <button data-action="sleep" id="sleep-button"><span>☾</span><b>打个盹</b></button>
+        </div>
+        <div class="habitat-footer">
+          <span id="asset-kind">内置角色</span
+          ><button id="desktop-button" class="primary">放到桌面 <span>↗</span></button>
+        </div>
+      </section>
+      <aside class="companion-panel">
+        <nav class="tabs" aria-label="伙伴设置">
+          <button class="tab active" data-tab="chat" aria-selected="true">陪伴</button>
+          <button class="tab" data-tab="create" aria-selected="false">换个模样</button>
+          <button class="tab" data-tab="memory" aria-selected="false">小小记忆</button>
+        </nav>
+        <section id="panel-chat" class="tab-panel">
+          <div class="profile-heading">
+            <div>
+              <span class="eyebrow">MEET YOUR FRIEND</span>
+              <h2 id="pet-name">绒绒</h2>
+            </div>
+            <span id="personality-badge" class="personality-badge">温柔</span>
+          </div>
+          <div class="vitals">
+            <div>
+              <label for="energy">精力 <span id="energy-value"></span></label
+              ><progress id="energy" max="100" value="78"></progress>
+            </div>
+            <div>
+              <label for="satiety">饱腹 <span id="satiety-value"></span></label
+              ><progress id="satiety" max="100" value="72"></progress>
+            </div>
+            <div>
+              <label for="affection">亲密 <span id="affection-value"></span></label
+              ><progress id="affection" max="100" value="35"></progress>
+            </div>
+          </div>
+          <div class="conversation-heading">
+            <h3>今天，想聊点什么？</h3>
+            <button id="clear-history" class="text-button subtle">清空</button>
+          </div>
+          <div class="conversation" id="conversation" role="log" aria-live="polite"></div>
+          <form id="chat-form" class="chat-form">
+            <textarea
+              id="message"
+              rows="2"
+              maxlength="1000"
+              placeholder="今天有点累，想和你待一会儿…"
+              aria-label="发送给桌宠的消息"
+            ></textarea
+            ><button id="send" type="submit" aria-label="发送消息">↑</button>
+          </form>
+          <p class="caption" id="chat-caption">本地回应 · 连接 AI 后可自由聊天</p>
+        </section>
+        <section id="panel-create" class="tab-panel" hidden>
+          <span class="eyebrow">MAKE IT YOURS</span>
+          <h2>从一张图片开始</h2>
+          <p class="section-copy">宠物照片、自己的画，都可以成为身边的小伙伴。</p>
+          <label class="upload" id="dropzone" for="upload"
+            ><span class="upload-symbol">＋</span><strong>选择或拖入图片</strong
+            ><span>PNG / JPG / WebP · 最大 8 MB</span></label
+          >
+          <input type="file" id="upload" accept="image/png,image/jpeg,image/webp" hidden />
+          <label class="check"
+            ><input id="cutout" type="checkbox" checked />去掉纯色背景<span>适合白底图</span></label
+          >
+          <p class="caption">本地去底只处理与边缘相连的近似纯色区域；复杂背景建议使用 AI 转化。</p>
+          <form id="profile-form">
+            <label class="field-label" for="name-input">怎么称呼它</label
+            ><input id="name-input" maxlength="16" value="绒绒" />
+            <label class="field-label" for="personality-input">它的性格</label
+            ><select id="personality-input">
+              <option>温柔</option>
+              <option>活泼</option>
+              <option>傲娇</option>
+            </select>
+            <button class="secondary wide" type="submit">保存名字与性格</button>
+          </form>
+          <div class="generation">
+            <button id="generate" class="primary wide">AI 转化为绒毛伙伴 <span>✧</span></button>
+            <p class="caption">
+              将原图发送至你配置的 AI 服务，可能产生费用。生成成功前保留现有模样。
+            </p>
+          </div>
+        </section>
+        <section id="panel-memory" class="tab-panel" hidden>
+          <span class="eyebrow">LITTLE THINGS MATTER</span>
+          <h2>记住你的小事</h2>
+          <p class="section-copy">你愿意告诉它的偏好，会留在这台电脑里，也会带进之后的 AI 对话。</p>
+          <ul id="memories" class="memories"></ul>
+          <form id="memory-form">
+            <label class="field-label" for="memory-input">想让它记住什么？</label
+            ><textarea
+              id="memory-input"
+              rows="3"
+              maxlength="120"
+              placeholder="例如：我喜欢雨天，工作累了想听一句鼓励。"
+            ></textarea
+            ><button class="secondary wide" type="submit">记住这件小事</button>
+          </form>
+          <p class="caption">最多 8 条，可随时删除。最近 24 条聊天消息也会保存在本机。</p>
+        </section>
+        <footer class="panel-footer">
+          <span>一点陪伴，刚刚好。</span><span>MAC + WINDOWS</span>
+        </footer>
+      </aside>
+    </main>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <dialog id="settings">
+      <form id="settings-form">
+        <div class="dialog-heading">
+          <h2>连接 AI</h2>
+          <button type="button" class="text-button" id="settings-close" aria-label="关闭设置">
+            ✕
+          </button>
+        </div>
+        <p class="section-copy">使用兼容 OpenAI 的服务。密钥仅保留在本次会话内。</p>
+        <label class="field-label" for="base">API 地址</label
+        ><input id="base" type="url" value="https://api.openai.com/v1" required />
+        <label class="field-label" for="key">API Key</label
+        ><input
+          id="key"
+          type="password"
+          autocomplete="off"
+          placeholder="输入密钥；留空保留现有连接"
+        />
+        <label class="field-label" for="chat-model">对话模型</label
+        ><input id="chat-model" value="gpt-4.1-mini" required />
+        <label class="field-label" for="image-model">图片编辑模型</label
+        ><input id="image-model" value="gpt-image-1.5" required />
+        <p class="caption">
+          聊天会发送近期对话与记忆；图片只在点击 AI 转化时发送。图片服务需支持透明 PNG 的 Images
+          Edits 接口。
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="disconnect" class="text-button">断开连接</button
+          ><button type="submit" class="primary">保存设置</button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="studio.js"></script>
+  </body>
+</html>

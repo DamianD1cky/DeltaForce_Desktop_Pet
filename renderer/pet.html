@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Softspot 桌宠</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="pet.css" />
+  </head>
+  <body class="desktop-pet">
+    <div class="floating-bubble interactive" id="floating-bubble" aria-live="polite">
+      我来陪你啦。
+    </div>
+    <button class="floating-character interactive" id="character" aria-label="拖动移动，轻点摸摸">
+      <canvas class="pet-image" id="mascot" aria-label="内置桌宠"></canvas>
+      <img class="pet-image" id="floating-image" alt="桌宠" draggable="false" hidden />
+    </button>
+    <div class="floating-controls interactive">
+      <button id="home" aria-label="打开小窝">↗</button>
+      <button id="feed" aria-label="喂点心">♧</button>
+      <button id="sleep" aria-label="切换睡眠">☾</button>
+      <button id="hide" aria-label="隐藏桌宠">−</button>
+    </div>
+    <script type="module" src="pet.js"></script>
+  </body>
+</html>

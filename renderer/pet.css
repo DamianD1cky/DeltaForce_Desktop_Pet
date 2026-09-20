@@ -1,0 +1,57 @@
+html:has(.desktop-pet),
+body.desktop-pet {
+  background: transparent !important;
+  width: 300px;
+  height: 350px;
+  overflow: hidden;
+  user-select: none;
+}
+.floating-bubble {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 8px;
+  border: 1px solid #e5dccb;
+  background: #fffcf4f2;
+  border-radius: 14px 14px 14px 3px;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.7;
+  max-height: 85px;
+  overflow: auto;
+  box-shadow: 0 3px 12px #46381910;
+}
+.floating-character {
+  position: absolute;
+  left: 35px;
+  top: 100px;
+  width: 230px;
+  height: 210px;
+  padding: 0;
+  cursor: grab;
+  touch-action: none;
+}
+.floating-character:active {
+  cursor: grabbing;
+}
+.floating-controls {
+  position: absolute;
+  bottom: 5px;
+  left: 66px;
+  display: flex;
+  gap: 5px;
+  background: #fffaf0ed;
+  border: 1px solid #e6ded0;
+  border-radius: 20px;
+  padding: 3px 6px;
+}
+.floating-controls button {
+  width: 29px;
+  height: 27px;
+  font-size: 17px;
+  color: #9d795b;
+}
+.floating-controls button:hover {
+  background: #eadfce;
+  border-radius: 50%;
+}
