@@ -10,6 +10,7 @@
     <title>Delta Companion · 三角洲桌面伙伴</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="redwolf.css" />
   </head>
   <body>
     <header class="topbar">
@@ -25,25 +26,43 @@
     <main class="workspace">
       <section class="habitat" aria-label="桌宠预览">
         <div class="habitat-heading">
-          <span class="eyebrow">LOCAL COMPANION / UNIT 07</span
+          <span class="eyebrow">DELTA FORCE / RED WOLF</span
           ><span id="days" class="days">部署第 1 天</span>
         </div>
         <div class="introduction">
-          <h1>行动终端<br />已连接。</h1>
-          <p>一个留在桌面的非官方战术伙伴。</p>
+          <h1>红狼 <span>蚀金玫瑰</span></h1>
+          <p>你的像素干员已就位。</p>
         </div>
         <div class="pet-stage">
           <div class="orbit orbit-one"></div>
           <div class="orbit orbit-two"></div>
-          <div class="speech" id="bubble" aria-live="polite">D-07 在线，等待你的指令。</div>
+          <div class="speech" id="bubble" aria-live="polite">红狼就位。</div>
           <button class="pet-touch" id="pet-touch" aria-label="确认伙伴状态">
-            <canvas class="pet-image" id="mascot" aria-label="D-07 战术桌面伙伴"></canvas>
+            <canvas
+              class="pet-image pixel-character"
+              id="mascot"
+              width="320"
+              height="320"
+              aria-label="红狼蚀金玫瑰像素桌宠"
+            ></canvas>
             <img class="pet-image" id="pet-image" alt="自定义战术伙伴" draggable="false" hidden />
             <span class="pet-shadow"></span>
           </button>
           <span id="emotion-label" class="emotion-label">● 链路稳定</span>
           <span class="stage-caption">点击角色确认状态</span>
         </div>
+        <div class="skill-actions" aria-label="红狼专属动作">
+          <button data-skill="slide">
+            <span>01 / 移动</span><strong>滑铲</strong><small>压低身位，向前突进</small>
+          </button>
+          <button data-skill="rose">
+            <span>02 / 大招</span><strong>捏爆金玫瑰</strong><small>握紧金玫瑰，花瓣迸散</small>
+          </button>
+          <button data-skill="cannon">
+            <span>03 / 装备</span><strong>右臂手炮</strong><small>抬臂开炮，装置后坐</small>
+          </button>
+        </div>
+        <p id="skill-status" class="skill-status" role="status">专属动作就绪</p>
         <div class="care-actions" aria-label="伙伴操作">
           <button data-action="pet"><span>◎</span>状态</button>
           <button data-action="feed"><span>＋</span>补给</button>
@@ -51,7 +70,7 @@
           <button data-action="sleep" id="sleep-button"><span>◐</span><b>休整</b></button>
         </div>
         <div class="habitat-footer">
-          <span id="asset-kind">内置终端</span
+          <span id="asset-kind">红狼 · 蚀金玫瑰</span
           ><button id="desktop-button" class="primary">部署到桌面 <span>↗</span></button>
         </div>
       </section>
@@ -65,7 +84,7 @@
           <div class="profile-heading">
             <div>
               <span class="eyebrow">ACTIVE UNIT</span>
-              <h2 id="pet-name">D-07</h2>
+              <h2 id="pet-name">红狼</h2>
             </div>
             <span id="personality-badge" class="personality-badge">沉着</span>
           </div>
@@ -103,7 +122,8 @@
         <section id="panel-create" class="tab-panel" hidden>
           <span class="eyebrow">UNIT APPEARANCE</span>
           <h2>配置角色外观</h2>
-          <p class="section-copy">导入照片或插画，创建属于你的桌面战术伙伴。</p>
+          <p class="section-copy">红狼内置专属逐帧动作；导入的图片以静态外观展示。</p>
+          <button id="restore-redwolf" class="secondary wide">恢复红狼 · 蚀金玫瑰</button>
           <label class="upload" id="dropzone" for="upload"
             ><span class="upload-symbol">＋</span><strong>导入角色素材</strong
             ><span>PNG / JPG / WebP · 最大 8 MB</span></label
@@ -115,7 +135,7 @@
           <p class="caption">本地去底仅处理与边缘相连的近似纯色区域；复杂背景建议使用 AI 生成。</p>
           <form id="profile-form">
             <label class="field-label" for="name-input">单位代号</label
-            ><input id="name-input" maxlength="16" value="D-07" />
+            ><input id="name-input" maxlength="16" value="红狼" />
             <label class="field-label" for="personality-input">响应风格</label
             ><select id="personality-input">
               <option>沉着</option>
@@ -144,7 +164,7 @@
               id="memory-input"
               rows="3"
               maxlength="120"
-              placeholder="例如：连续工作 50 分钟后提醒我休息。"
+              placeholder="例如：我喜欢简短的鼓励和黑金配色。"
             ></textarea
             ><button class="secondary wide" type="submit">写入本地档案</button>
           </form>

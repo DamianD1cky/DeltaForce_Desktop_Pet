@@ -10,21 +10,33 @@
     <title>Delta Companion 桌面伙伴</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="redwolf.css" />
     <link rel="stylesheet" href="pet.css" />
   </head>
   <body class="desktop-pet">
-    <div class="floating-id">DC // <span id="floating-name">D-07</span></div>
+    <div class="floating-id">RED WOLF // <span id="floating-name">红狼</span></div>
     <div class="floating-bubble interactive" id="floating-bubble" aria-live="polite">
-      D-07 在线，等待你的指令。
+      红狼就位。
     </div>
     <button
       class="floating-character interactive"
       id="character"
       aria-label="拖动移动，点击确认状态"
     >
-      <canvas class="pet-image" id="mascot" aria-label="内置桌宠"></canvas>
+      <canvas
+        class="pet-image pixel-character"
+        id="mascot"
+        width="320"
+        height="320"
+        aria-label="红狼蚀金玫瑰像素桌宠"
+      ></canvas>
       <img class="pet-image" id="floating-image" alt="桌面战术伙伴" draggable="false" hidden />
     </button>
+    <div class="floating-skills interactive" aria-label="红狼专属动作">
+      <button data-skill="slide" title="滑铲">滑铲</button>
+      <button data-skill="rose" title="大招：捏爆金玫瑰">捏玫瑰</button>
+      <button data-skill="cannon" title="右前臂装置发射手炮">手炮</button>
+    </div>
     <div class="floating-controls interactive">
       <button id="home" aria-label="打开行动台" title="打开行动台">⌂</button>
       <button id="feed" aria-label="补充物资" title="补充物资">＋</button>

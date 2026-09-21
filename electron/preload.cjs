@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron")
 const methods = [
   "get",
   "action",
+  "skill",
+  "restore-redwolf",
   "chat",
   "generate",
   "profile",

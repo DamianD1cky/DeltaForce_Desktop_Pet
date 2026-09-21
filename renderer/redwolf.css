@@ -1,0 +1,161 @@
+:root {
+  --accent: #dfc27b;
+  --accent-strong: #f6dfa1;
+  --character-size: 240px;
+}
+body {
+  color-scheme: dark;
+}
+.habitat {
+  background-color: #14171a;
+  background-image: none;
+  padding: 22px 30px 18px;
+}
+.habitat::before,
+.habitat::after,
+.orbit,
+.pet-shadow {
+  display: none;
+}
+.introduction {
+  margin-top: 16px;
+}
+.introduction h1 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+.introduction h1 span {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 12px;
+}
+.introduction p {
+  margin-top: 9px;
+}
+.pet-stage {
+  min-height: 320px;
+}
+.pet-touch {
+  width: var(--character-size);
+  height: var(--character-size);
+  margin: 0;
+  flex-shrink: 0;
+}
+/* Fixed display size; moods never rotate or stretch completed pixel frames. */
+.pet-image.pixel-character {
+  width: var(--character-size);
+  height: var(--character-size);
+  image-rendering: pixelated;
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+.speech {
+  max-width: 180px;
+  top: 0;
+  right: 0;
+  font-size: 10px;
+}
+.emotion-label {
+  bottom: 20px;
+}
+.stage-caption {
+  right: 0;
+  bottom: 20px;
+  font-size: 9px;
+}
+.skill-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.skill-actions button {
+  text-align: left;
+  padding: 11px 12px;
+  border-right: 1px solid var(--line);
+  transition: background 120ms;
+}
+.skill-actions button:last-child {
+  border-right: 0;
+}
+.skill-actions span,
+.skill-actions small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+}
+.skill-actions strong {
+  display: block;
+  font-size: 13px;
+  margin: 6px 0;
+  color: var(--accent);
+}
+.skill-actions button:hover:not(:disabled),
+[data-skill][aria-pressed="true"] {
+  background: #dfc27b12;
+}
+.skill-status {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 0;
+  min-height: 14px;
+}
+.care-actions {
+  border: 0;
+  padding: 0;
+  margin: 5px 0 9px;
+  justify-content: flex-start;
+}
+.care-actions button {
+  height: 30px;
+  width: auto;
+  padding: 3px 15px;
+  flex-direction: row;
+}
+.care-actions button span {
+  font-size: 15px;
+  margin-right: 4px;
+}
+.habitat-footer {
+  margin-top: auto;
+  padding-top: 10px;
+}
+.primary {
+  padding: 11px 18px;
+}
+.tab-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #50554c transparent;
+}
+.connection::before {
+  box-shadow: none;
+}
+.brand-mark {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+@media (max-height: 720px) {
+  .habitat {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .introduction {
+    margin-top: 8px;
+  }
+  .introduction h1 {
+    font-size: 22px;
+  }
+  .introduction p,
+  .skill-actions small,
+  .stage-caption {
+    display: none;
+  }
+  .skill-actions button {
+    padding: 8px;
+  }
+  .care-actions {
+    margin: 3px 0;
+  }
+}

@@ -7,6 +7,9 @@ import { fileURLToPath } from "node:url"
 import http from "node:http"
 
 const root = fileURLToPath(new URL("../", import.meta.url))
+const sprites = JSON.parse(
+  await readFile(path.join(root, "asset/sprites/redwolf-gilded-rose/animations.json"), "utf8"),
+)
 const results = path.join(root, "test-results")
 await mkdir(results, { recursive: true })
 const dataDir = await mkdtemp(path.join(tmpdir(), "delta-companion-e2e-"))
@@ -65,6 +68,11 @@ async function launch() {
   page.on("pageerror", (error) => errors.push(error.message))
   await page.locator("#pet-name").waitFor()
   await page.waitForFunction(() => document.querySelector("#energy-value").textContent !== "")
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#mascot").dataset.ready === "true" ||
+      !document.querySelector("#pet-image").hidden,
+  )
   return { instance, page }
 }
 async function configure(page) {
@@ -97,7 +105,13 @@ try {
   image = Buffer.from(characterData.split(",")[1], "base64")
   assert(image.length > 1000)
   await writeFile(fixturePath, image)
-  checks.push("native Electron launch and procedural D-07 mascot")
+  assert.equal(await page.locator("#pet-name").textContent(), "红狼")
+  assert.equal(
+    await page.locator("#mascot").evaluate((el) => getComputedStyle(el).imageRendering),
+    "pixelated",
+  )
+  assert.equal(await page.locator("#mascot").evaluate((el) => el.getBoundingClientRect().width), 240)
+  checks.push("native Electron launch and bundled Red Wolf pixel atlas")
   const before = Number(await page.locator("#affection-value").textContent())
   await page.locator('[data-action="pet"]').click()
   await page.waitForFunction(
@@ -123,7 +137,10 @@ try {
   await page.locator("#personality-input").selectOption("敏锐")
   await page.locator("#profile-form button").click()
   await page.locator("#upload").setInputFiles(fixturePath)
-  await page.waitForFunction(() => document.querySelector("#asset-kind").textContent !== "内置终端")
+  await page.waitForFunction(
+    () => document.querySelector("#asset-kind").textContent !== "红狼 · 蚀金玫瑰",
+  )
+  assert(await page.locator('[data-skill="slide"]').isDisabled())
   checks.push("PNG upload, processing, profile edit")
   await configure(page)
   await page.locator("#settings-open").click()
@@ -184,7 +201,7 @@ try {
     }
   })
   assert(desktop.top && desktop.isolation && !desktop.node)
-  assert.deepEqual(desktop.size, [300, 350])
+  assert.deepEqual(desktop.size, [360, 440])
   await pet.locator("#feed").click()
   await page.waitForFunction(() => document.querySelector("#bubble").textContent.includes("补给"))
   const petPng = await pet.screenshot({
@@ -197,11 +214,144 @@ try {
   }, petPng.toString("base64"))
   assert.equal(cornerAlpha, 0)
   checks.push("desktop window screenshot contains a fully transparent corner")
+  // Exercise real atlas playback and shared main-process skill state in both windows.
+  await page.locator('[data-tab="create"]').click()
+  await page.locator("#restore-redwolf").click()
+  await pet.locator("#mascot").waitFor()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.ready === "true")
+  assert.equal(await pet.locator("#mascot").evaluate((el) => el.getBoundingClientRect().width), 240)
+  assert.equal(await pet.locator("#character").evaluate((el) => el.getBoundingClientRect().width), 240)
+  for (const clip of Object.values(sprites.clips)) {
+    assert(clip.frameCount >= 36)
+    assert.equal(clip.durations.length, clip.frameCount)
+    assert(clip.durations.every((duration) => duration === 40))
+    assert.equal(clip.durationMs, clip.durations.reduce((a, b) => a + b, 0))
+  }
+  checks.push("240px character in both windows; all five clips have 25fps timelines")
+  await page.locator('[data-tab="chat"]').click()
+  // Place the pet away from the edge to verify actual slide displacement.
+  const slideOrigin = await app.evaluate(({ BrowserWindow, screen }) => {
+    const win = BrowserWindow.getAllWindows().find(
+      (w) => w.getTitle() === "Delta Companion 桌面伙伴",
+    )
+    const area = screen.getPrimaryDisplay().workArea
+    win.setPosition(area.x + 40, area.y + area.height - 460)
+    return win.getPosition()
+  })
+  for (const name of ["slide", "rose", "cannon"]) {
+    await pet.locator(`[data-skill="${name}"]`).click()
+    await page.waitForFunction(
+      (name) => document.querySelector("#mascot").dataset.clip === name,
+      name,
+    )
+    await pet.waitForFunction(({ name, keyframe }) => {
+      const c = document.querySelector("#mascot")
+      return c.dataset.clip === name && Number(c.dataset.frame) >= keyframe
+    }, { name, keyframe: sprites.clips[name].keyframe })
+    const sync = await Promise.all(
+      [page, pet].map((p) =>
+        p.locator("#mascot").evaluate((el) => ({
+          id: el.dataset.actionId,
+          clip: el.dataset.clip,
+          frame: Number(el.dataset.frame),
+          pixels: el.toDataURL(),
+        })),
+      ),
+    )
+    assert.equal(sync[0].id, sync[1].id)
+    assert.equal(sync[0].clip, name)
+    assert(Math.abs(sync[0].frame - sync[1].frame) <= 1)
+    assert.notEqual(sync[0].pixels, characterData)
+    await pet.screenshot({
+      path: path.join(results, `redwolf-${name}.png`),
+      omitBackground: true,
+    })
+    assert(await page.locator('[data-skill="cannon"]').isDisabled())
+    // Main-process rejection is also required, even when UI guards are bypassed.
+    const rejected = await page.evaluate(async () => {
+      try {
+        await window.companion.skill({ name: "cannon" })
+        return false
+      } catch {
+        return true
+      }
+    })
+    assert(rejected)
+    await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
+  }
+  const slideEnd = await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()
+      .find((w) => w.getTitle() === "Delta Companion 桌面伙伴")
+      .getPosition(),
+  )
+  assert.equal(slideEnd[0] - slideOrigin[0], 150)
+  assert.equal(slideEnd[1], slideOrigin[1])
+  checks.push(
+    "slide travels 150px; rose crush and right-arm cannon animate and synchronize across windows",
+  )
+
+  await page.locator('[data-skill="rose"]').click()
+  await pet.locator("#sleep").click()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "sleep")
+  assert(await page.locator('[data-skill="rose"]').isDisabled())
+  assert.equal(await page.evaluate(async () => (await window.companion.get()).animation), null)
+  await pet.locator("#sleep").click()
+  // Reduced motion keeps one representative frame and does not move the window.
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await page.locator('[data-skill="slide"]').click()
+  await page.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "slide")
+  assert.equal(
+    await page.locator("#mascot").getAttribute("data-frame"),
+    String(sprites.clips.slide.keyframe),
+  )
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
+  const still = await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()
+      .find((w) => w.getTitle() === "Delta Companion 桌面伙伴")
+      .getPosition(),
+  )
+  assert.deepEqual(still, slideEnd)
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  checks.push("sleep interrupts actions; reduced motion shows a keyframe without sliding")
+
+  // At the right edge, never teleport backwards to create a runway.
+  const edge = await app.evaluate(({ BrowserWindow, screen }) => {
+    const win = BrowserWindow.getAllWindows().find(
+      (w) => w.getTitle() === "Delta Companion 桌面伙伴",
+    )
+    const area = screen.getDisplayMatching(win.getBounds()).workArea
+    win.setPosition(area.x + area.width - win.getSize()[0], win.getPosition()[1])
+    return win.getPosition()
+  })
+  await pet.locator('[data-skill="slide"]').click()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "slide")
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
+  assert.deepEqual(
+    await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()
+        .find((w) => w.getTitle() === "Delta Companion 桌面伙伴")
+        .getPosition(),
+    ),
+    edge,
+  )
+  checks.push("slide is clamped at the display edge without teleporting")
+
+  await page.locator('[data-skill="cannon"]').click()
   await pet.locator("#hide").click()
   await page.waitForFunction(() =>
     document.querySelector("#desktop-button").textContent.includes("部署到桌面"),
   )
   checks.push("transparent always-on-top native window, cross-window sync, hide")
+  assert.equal(await page.evaluate(async () => (await window.companion.get()).animation), null)
+  // Importing during an action cancels playback; saved custom images still restore.
+  await page.locator('[data-skill="rose"]').click()
+  await page.locator('[data-tab="create"]').click()
+  await page.locator("#name-input").fill("团子")
+  await page.locator("#profile-form button").click()
+  await page.locator("#upload").setInputFiles(fixturePath)
+  await page.waitForFunction(() => !document.querySelector("#pet-image").hidden)
+  assert.equal(await page.evaluate(async () => (await window.companion.get()).animation), null)
+  checks.push("hide and image import cancel active skills; restoring Red Wolf re-enables skills")
   await app.close()
   app = null
   launched = await launch()

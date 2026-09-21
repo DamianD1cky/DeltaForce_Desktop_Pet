@@ -30,6 +30,8 @@
     "files": [
       "electron/**/*",
       "renderer/**/*",
+      "asset/sprites/redwolf-gilded-rose/*-atlas.png",
+      "asset/sprites/redwolf-gilded-rose/animations.json",
       "package.json"
     ],
     "asar": true,

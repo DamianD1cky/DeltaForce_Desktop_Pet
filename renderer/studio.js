@@ -1,7 +1,9 @@
 import { prepareImage } from "./image.js"
-import { drawMascot } from "./mascot.js"
+import { createSpritePlayer, bindSkillControls, updateSkillControls } from "./sprite-player.js"
 const api = window.companion
 const $ = (id) => document.getElementById(id)
+const player = createSpritePlayer($("mascot"), toast)
+window.addEventListener("pagehide", () => player.dispose(), { once: true })
 let state,
   toastTimer,
   historyKey = "",
@@ -11,7 +13,7 @@ const labels = {
   calm: "链路稳定",
   happy: "状态良好",
   curious: "演练模式",
-  sleepy: "低功耗",
+  sleepy: "休息中",
   sad: "补给不足",
 }
 function toast(message) {
@@ -49,6 +51,8 @@ function update(next) {
   $("send").disabled = state.busyChat
   $("desktop-button").textContent = state.desktop ? "已部署 · 显示 ↗" : "部署到桌面 ↗"
   $("sleep-button").querySelector("b").textContent = state.sleeping ? "恢复" : "休整"
+  document.body.dataset.character = state.hasImage ? "custom" : "redwolf"
+  updateSkillControls(state)
   $("generate").disabled = state.busyImage || importing
   $("generate").textContent = state.busyImage ? "正在生成战术外观…" : "AI 生成战术外观 ✦"
   for (const key of ["energy", "satiety", "affection"]) {
@@ -60,7 +64,7 @@ function update(next) {
     $("mascot").hidden = Boolean(next.image)
     if (next.image) $("pet-image").src = next.image
   }
-  if (!$("mascot").hidden) drawMascot($("mascot"), state.mood)
+  player.update(state)
   const newHistoryKey = JSON.stringify(state.history)
   if (historyKey !== newHistoryKey) {
     historyKey = newHistoryKey
@@ -69,7 +73,7 @@ function update(next) {
       const empty = document.createElement("p")
       empty.className = "empty-conversation"
       const mark = document.createElement("span")
-      mark.textContent = "07"
+      mark.textContent = "RW"
       empty.append(mark, "频道在线。", document.createElement("br"), "输入消息或记录一项行动备忘。")
       $("conversation").append(empty)
     }
@@ -117,6 +121,14 @@ if (!api) {
   api.subscribe(update)
   const initial = await api.get()
   update(initial)
+  bindSkillControls(api, (promise) => perform(() => promise))
+  $("restore-redwolf").addEventListener("click", () =>
+    perform(async () => {
+      await api["restore-redwolf"]()
+      $("name-input").value = "红狼"
+      toast("已恢复红狼「蚀金玫瑰」及专属动作。")
+    }),
+  )
   $("name-input").value = state.name
   $("personality-input").value = state.personality
   document

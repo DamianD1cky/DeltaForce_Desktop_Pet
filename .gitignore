@@ -4,3 +4,5 @@ test-results/
 .env
 .env.*
 .DS_Store
+.venv-art/
+__pycache__/

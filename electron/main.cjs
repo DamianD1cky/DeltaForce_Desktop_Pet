@@ -2,6 +2,12 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen } = require
 const fs = require("node:fs")
 const path = require("node:path")
 const { pathToFileURL } = require("node:url")
+const sprites = require("../asset/sprites/redwolf-gilded-rose/animations.json")
+const petSize = { width: 360, height: 440 }
+let animation = null,
+  animationTimer = null,
+  animationSequence = 0
+const skills = new Set(["slide", "rose", "cannon"])
 
 if (process.env.PET_DATA_DIR) app.setPath("userData", path.resolve(process.env.PET_DATA_DIR))
 const primaryInstance = app.requestSingleInstanceLock()
@@ -31,8 +37,8 @@ const emotions = ["calm", "happy", "curious", "sleepy", "sad"]
 const clamp = (n) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 50))
 const text = (value, limit) => (typeof value === "string" ? value.trim().slice(0, limit) : "")
 const defaults = () => ({
-  version: 2,
-  name: "D-07",
+  version: 3,
+  name: "红狼",
   personality: "沉着",
   mood: "calm",
   moodUntil: 0,
@@ -43,10 +49,10 @@ const defaults = () => ({
   lastTick: Date.now(),
   lastInteraction: Date.now(),
   createdAt: Date.now(),
-  bubble: "D-07 在线，等待你的指令。",
+  bubble: "红狼就位。滑铲、金玫瑰、手炮，随时待命。",
   history: [],
   memories: [],
-  imageKind: "内置终端",
+  imageKind: "红狼 · 蚀金玫瑰",
   hasImage: false,
   position: null,
 })
@@ -73,9 +79,12 @@ function snapshot(withImage = false) {
     passThrough,
     busyChat,
     busyImage,
+    animation,
+    sprites,
   }
   if (withImage)
-    data.image = imagePath() ? nativeImage.createFromPath(imagePath()).toDataURL() : null
+    data.image =
+      state.hasImage && imagePath() ? nativeImage.createFromPath(imagePath()).toDataURL() : null
   return data
 }
 function broadcast(withImage = false) {
@@ -87,6 +96,72 @@ function setMood(mood, bubble) {
   state.mood = state.sleeping ? "sleepy" : mood
   state.moodUntil = Date.now() + 25000
   state.bubble = bubble
+}
+function finishAnimation(notify = true) {
+  const wasMoving = animation?.name === "slide"
+  clearInterval(animationTimer)
+  animationTimer = null
+  animation = null
+  if (wasMoving && pet && !pet.isDestroyed()) {
+    const [x, y] = pet.getPosition()
+    state.position = { x, y }
+    save()
+  }
+  if (notify) broadcast()
+}
+function performSkill(payload) {
+  const name = payload?.name
+  if (!skills.has(name)) throw new Error("未知角色动作。")
+  if (state.hasImage) throw new Error("专属动作属于红狼，请先在外观中恢复红狼。")
+  if (state.sleeping) throw new Error("红狼正在休息，请先叫醒他。")
+  if (animation) throw new Error("当前动作尚未结束。")
+  if (dragTimer) throw new Error("请先放下角色，再使用动作。")
+  const clip = sprites.clips[name]
+  const startedAt = Date.now()
+  animation = {
+    id: ++animationSequence,
+    name,
+    startedAt,
+    durationMs: clip.durationMs,
+    reducedMotion: payload?.reducedMotion === true,
+  }
+  const bubbles = {
+    slide: "压低身位，滑铲！",
+    rose: "金玫瑰握在手中——捏碎，出击！",
+    cannon: "右臂手炮就绪，发射！",
+  }
+  setMood("curious", bubbles[name])
+  state.lastInteraction = startedAt
+  state.affection = clamp(state.affection + 1)
+  // Clamp travel at the current display edge without teleporting the pet.
+  let origin = null,
+    destination = null
+  if (name === "slide" && !animation.reducedMotion && pet?.isVisible()) {
+    const [x, y] = pet.getPosition()
+    const area = screen.getDisplayMatching({ x, y, ...petSize }).workArea
+    const maxX = area.x + area.width - petSize.width
+    const distance = Math.min(clip.movement.distance, Math.max(0, maxX - x))
+    origin = clampPosition({ x, y })
+    destination = clampPosition({ x: origin.x + distance, y: origin.y })
+    pet.setPosition(origin.x, origin.y, false)
+  }
+  save()
+  broadcast()
+  animationTimer = setInterval(() => {
+    if (!animation) return
+    const elapsed = Date.now() - startedAt
+    if (origin && pet && !pet.isDestroyed()) {
+      const { start, end } = clip.movement
+      const t = Math.max(0, Math.min(1, (elapsed - start) / (end - start)))
+      const position = clampPosition({
+        x: origin.x + (destination.x - origin.x) * (1 - (1 - t) ** 2),
+        y: origin.y,
+      })
+      pet.setPosition(position.x, position.y, false)
+    }
+    if (elapsed >= clip.durationMs) finishAnimation()
+  }, 16)
+  return animation
 }
 function tick() {
   const now = Date.now()
@@ -103,10 +178,7 @@ function interact(action) {
   switch (action) {
     case "pet":
       state.affection = clamp(state.affection + 3)
-      setMood(
-        "happy",
-        state.sleeping ? "低功耗模式运行中，触碰已记录。" : "状态确认。D-07 随时可以出发。",
-      )
+      setMood("happy", state.sleeping ? "我先休息一会儿。" : `${state.name} 收到。随时可以出发。`)
       break
     case "feed":
       state.satiety = clamp(state.satiety + 20)
@@ -124,10 +196,11 @@ function interact(action) {
       setMood("curious", "模拟演练完成，默契参数已更新。")
       break
     case "sleep":
+      finishAnimation(false)
       state.sleeping = !state.sleeping
       setMood(
         state.sleeping ? "sleepy" : "calm",
-        state.sleeping ? "进入低功耗休整。你也该离开屏幕一会儿。" : "休整结束，频道恢复。",
+        state.sleeping ? "休息一下，你也活动活动。" : "休整结束，继续行动。",
       )
       break
     default:
@@ -181,14 +254,19 @@ function clampPosition(position) {
   const bounds = {
     x: Math.round(position.x),
     y: Math.round(position.y),
-    width: 300,
-    height: 350,
+    ...petSize,
   }
   const area = screen.getDisplayMatching(bounds).workArea
   return {
     x: Math.round(Math.max(area.x, Math.min(bounds.x, area.x + area.width - bounds.width))),
     y: Math.round(Math.max(area.y, Math.min(bounds.y, area.y + area.height - bounds.height))),
   }
+}
+function hidePet() {
+  finishAnimation(false)
+  stopDrag()
+  pet?.hide()
+  broadcast()
 }
 function showPet() {
   if (pet && !pet.isDestroyed()) {
@@ -199,15 +277,14 @@ function showPet() {
   const area = screen.getPrimaryDisplay().workArea
   const pos = clampPosition(
     state.position || {
-      x: area.x + area.width - 320,
-      y: area.y + area.height - 370,
+      x: area.x + area.width - petSize.width - 20,
+      y: area.y + area.height - petSize.height - 20,
     },
   )
   pet = createWindow(
     {
       ...pos,
-      width: 300,
-      height: 350,
+      ...petSize,
       frame: false,
       transparent: true,
       resizable: false,
@@ -223,12 +300,16 @@ function showPet() {
   if (process.platform === "darwin")
     pet.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   pet.on("closed", () => {
+    finishAnimation(false)
     clearInterval(dragTimer)
+    dragTimer = null
     pet = null
     broadcast()
   })
   pet.on("hide", () => {
+    finishAnimation(false)
     clearInterval(dragTimer)
+    dragTimer = null
     broadcast()
   })
   pet.on("show", () => broadcast())
@@ -464,10 +545,15 @@ app.whenReady().then(() => {
   state = defaults()
   try {
     const saved = JSON.parse(fs.readFileSync(savePath, "utf8"))
-    if ([1, 2].includes(saved.version)) {
+    if ([1, 2, 3].includes(saved.version)) {
       state = { ...state, ...saved }
-      state.version = 2
-      state.name = text(state.name, 16) || "D-07"
+      state.version = 3
+      state.hasImage = Boolean(state.hasImage && imagePath())
+      state.name = text(state.name, 16) || "红狼"
+      if (saved.version < 3 && !state.hasImage) {
+        if (["D-07", "绒绒"].includes(state.name)) state.name = "红狼"
+        state.bubble = "红狼就位。滑铲、金玫瑰、手炮，随时待命。"
+      }
       const legacyPersonalities = {
         温柔: "可靠",
         活泼: "敏锐",
@@ -476,7 +562,7 @@ app.whenReady().then(() => {
       state.personality =
         legacyPersonalities[state.personality] ||
         (["沉着", "敏锐", "可靠"].includes(state.personality) ? state.personality : "沉着")
-      if (state.imageKind === "内置角色") state.imageKind = "内置终端"
+      if (!state.hasImage) state.imageKind = "红狼 · 蚀金玫瑰"
       state.history = Array.isArray(state.history)
         ? state.history
             .filter(
@@ -532,6 +618,18 @@ app.whenReady().then(() => {
   )
   register("get", () => snapshot(true))
   register("action", interact)
+  register("skill", performSkill)
+  register("restore-redwolf", () => {
+    if (busyImage) throw new Error("请等待图片生成结束。")
+    finishAnimation(false)
+    revision++
+    state.hasImage = false
+    state.name = "红狼"
+    state.imageKind = "红狼 · 蚀金玫瑰"
+    setMood("calm", "红狼归队。")
+    save()
+    broadcast(true)
+  })
   register("chat", chat)
   register("generate", generateImage)
   register("profile", (payload) => {
@@ -545,6 +643,7 @@ app.whenReady().then(() => {
   register("import", (payload) => {
     if (busyImage) throw new Error("请等当前生成完成后再换图片。")
     const png = decodeImage(payload?.image)
+    finishAnimation(false)
     revision++
     fs.writeFileSync(path.join(app.getPath("userData"), "source.png"), png)
     fs.writeFileSync(path.join(app.getPath("userData"), "pet.png"), png)
@@ -598,10 +697,7 @@ app.whenReady().then(() => {
     return true
   })
   register("studio", showStudio)
-  register("hide-pet", () => {
-    pet?.hide()
-    broadcast()
-  })
+  register("hide-pet", hidePet)
   register("ignore", (ignore, event) => {
     if (event.sender !== pet?.webContents || dragTimer) return
     pet.setIgnoreMouseEvents(passThrough || ignore === true, {
@@ -612,6 +708,7 @@ app.whenReady().then(() => {
     if (event.sender !== pet?.webContents) return
     stopDrag()
     if (!active || passThrough) return
+    finishAnimation()
     const cursor = screen.getCursorScreenPoint(),
       [x, y] = pet.getPosition()
     const start = Date.now()
@@ -655,7 +752,7 @@ app.whenReady().then(() => {
     Menu.buildFromTemplate([
       { label: "打开行动台", click: showStudio },
       { label: "显示桌宠", click: showPet },
-      { label: "隐藏桌宠", click: () => pet?.hide() },
+      { label: "隐藏桌宠", click: hidePet },
       {
         label: "鼠标完全穿透",
         type: "checkbox",
@@ -672,11 +769,13 @@ app.whenReady().then(() => {
   )
   tray.on("double-click", showStudio)
   screen.on("display-removed", () => {
+    finishAnimation(false)
     if (pet) {
       const [x, y] = pet.getPosition()
       const pos = clampPosition({ x, y })
       pet.setPosition(pos.x, pos.y)
     }
+    broadcast()
   })
   const timer = setInterval(() => {
     tick()
@@ -691,6 +790,7 @@ app.on("activate", () => {
 app.on("window-all-closed", () => {})
 app.on("before-quit", () => {
   quitting = true
+  finishAnimation(false)
   clearInterval(dragTimer)
   if (state) save()
 })

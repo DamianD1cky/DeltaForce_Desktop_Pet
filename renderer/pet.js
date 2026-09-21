@@ -1,11 +1,17 @@
-import { drawMascot } from "./mascot.js"
+import { createSpritePlayer, bindSkillControls, updateSkillControls } from "./sprite-player.js"
 const api = window.companion
 const character = document.getElementById("character")
+const player = createSpritePlayer(document.getElementById("mascot"), (message) => {
+  document.getElementById("floating-bubble").textContent = message
+})
+window.addEventListener("pagehide", () => player.dispose(), { once: true })
 let down,
   dragging = false,
   ignored = false
 function update(state) {
   document.body.dataset.mood = state.mood
+  document.body.dataset.character = state.hasImage ? "custom" : "redwolf"
+  updateSkillControls(state)
   document.getElementById("floating-name").textContent = state.name
   document.getElementById("floating-bubble").textContent = state.bubble
   if ("image" in state) {
@@ -13,8 +19,7 @@ function update(state) {
     document.getElementById("mascot").hidden = Boolean(state.image)
     if (state.image) document.getElementById("floating-image").src = state.image
   }
-  if (!document.getElementById("mascot").hidden)
-    drawMascot(document.getElementById("mascot"), state.mood)
+  player.update(state)
 }
 function run(promise) {
   promise.catch((error) => {
@@ -22,6 +27,7 @@ function run(promise) {
   })
 }
 api.subscribe(update)
+bindSkillControls(api, run)
 run(api.get().then(update))
 document.getElementById("home").onclick = () => run(api.studio())
 document.getElementById("feed").onclick = () => run(api.action("feed"))

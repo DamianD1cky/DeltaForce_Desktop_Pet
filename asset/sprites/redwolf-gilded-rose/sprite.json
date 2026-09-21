@@ -1,0 +1,59 @@
+{
+  "character": "红狼",
+  "skin": "蚀金玫瑰",
+  "status": "静态像素美术样稿 v1，待确认还原度",
+  "canvas": [
+    192,
+    288
+  ],
+  "frameCount": 1,
+  "alpha": "binary",
+  "paletteSize": 30,
+  "bounds": [
+    27,
+    11,
+    162,
+    274
+  ],
+  "scale": "integer, nearest-neighbor",
+  "sources": [
+    "../../pic/红狼-1.png",
+    "../../pic/红狼-2.png",
+    "../../pic/红狼-3.png",
+    "../../pic/红狼-4.png"
+  ],
+  "palette": {
+    "ink": "#0b0e14",
+    "void": "#11151c",
+    "black": "#181d25",
+    "cloth0": "#1e242d",
+    "cloth1": "#282f38",
+    "cloth2": "#353d47",
+    "cloth3": "#454e58",
+    "cloth4": "#59626b",
+    "carbon0": "#151b20",
+    "carbon1": "#252c30",
+    "carbon2": "#394247",
+    "carbon3": "#505a5d",
+    "edge": "#6b7576",
+    "gold0": "#453623",
+    "gold1": "#66502e",
+    "gold2": "#89703e",
+    "gold3": "#aa8b4c",
+    "gold4": "#c6a760",
+    "gold5": "#dfc27b",
+    "gold6": "#efda97",
+    "gold7": "#fff0b8",
+    "silver0": "#555e67",
+    "silver1": "#7d8891",
+    "silver2": "#acb5b9",
+    "silver3": "#d2d8d6",
+    "silver4": "#f0f1e9",
+    "red0": "#4a242b",
+    "red1": "#793d43",
+    "red2": "#ac6364",
+    "sole0": "#1c1d21",
+    "sole1": "#343639",
+    "sole2": "#535552"
+  }
+}

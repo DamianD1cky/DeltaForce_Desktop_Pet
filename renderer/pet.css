@@ -1,8 +1,8 @@
 html:has(.desktop-pet),
 body.desktop-pet {
   background: transparent !important;
-  width: 300px;
-  height: 350px;
+  width: 360px;
+  height: 440px;
   overflow: hidden;
   user-select: none;
 }
@@ -10,7 +10,7 @@ body.desktop-pet {
   position: absolute;
   top: 4px;
   left: 23px;
-  color: #b8ff3d;
+  color: var(--accent);
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 8px;
   pointer-events: none;
@@ -21,7 +21,7 @@ body.desktop-pet {
   right: 22px;
   top: 20px;
   border: 1px solid #4b564d;
-  border-left: 3px solid #b8ff3d;
+  border-left: 3px solid var(--accent);
   background: #151a17f2;
   border-radius: 3px;
   padding: 9px 12px;
@@ -29,16 +29,16 @@ body.desktop-pet {
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 10px;
   line-height: 1.7;
-  max-height: 70px;
+  max-height: 52px;
   overflow: auto;
   box-shadow: 0 5px 18px #00000066;
 }
 .floating-character {
   position: absolute;
-  left: 35px;
-  top: 91px;
-  width: 230px;
-  height: 218px;
+  left: 60px;
+  top: 148px;
+  width: var(--character-size);
+  height: var(--character-size);
   padding: 0;
   cursor: grab;
   touch-action: none;
@@ -49,7 +49,7 @@ body.desktop-pet {
 .floating-controls {
   position: absolute;
   bottom: 5px;
-  left: 66px;
+  left: 188px;
   display: flex;
   gap: 5px;
   background: #151a17f2;
@@ -67,6 +67,25 @@ body.desktop-pet {
 }
 .floating-controls button:hover {
   border-radius: 2px;
-  background: #b8ff3d;
+  background: var(--accent);
   color: #10140f;
+}
+.floating-skills {
+  position: absolute;
+  left: 12px;
+  bottom: 5px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #4b564d;
+  border-radius: 3px;
+  background: #151a17f2;
+}
+.floating-skills button {
+  padding: 7px 8px;
+  font-size: 10px;
+  color: var(--accent);
+}
+.floating-skills button:hover:not(:disabled) {
+  background: #dfc27b22;
 }
