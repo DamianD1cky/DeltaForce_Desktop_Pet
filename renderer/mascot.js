@@ -1,213 +1,207 @@
-// The built-in companion is a procedural character, drawn locally, with actual
-// expression changes. Uploaded images use their own pixels and body animation.
+// D-07 is an original local Canvas character. Uploaded images keep their own
+// pixels and use the same body-level motion as this built-in unit.
 export function drawMascot(canvas, mood = "calm") {
   const ctx = canvas.getContext("2d")
   canvas.width = 600
   canvas.height = 600
   ctx.scale(2, 2)
   ctx.lineJoin = "round"
+  ctx.lineCap = "round"
   ctx.clearRect(0, 0, 300, 300)
+
+  const signal = mood === "sad" ? "#ffb547" : mood === "sleepy" ? "#7f9185" : "#b8ff3d"
+  const armorDark = "#171c1a"
+  const armorLight = "#59645b"
+
   function ellipse(x, y, rx, ry, color, rotation = 0) {
     ctx.fillStyle = color
     ctx.beginPath()
     ctx.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2)
     ctx.fill()
   }
+
   function stroke(points, color, width) {
     ctx.strokeStyle = color
     ctx.lineWidth = width
-    ctx.lineCap = "round"
     ctx.beginPath()
     ctx.moveTo(...points[0])
-    for (const p of points.slice(1)) ctx.lineTo(...p)
+    for (const point of points.slice(1)) ctx.lineTo(...point)
     ctx.stroke()
   }
-  // Curled tail and pear-shaped body.
-  ctx.strokeStyle = "#d8b68d"
-  ctx.lineWidth = 25
-  ctx.lineCap = "round"
-  ctx.beginPath()
-  ctx.moveTo(196, 240)
-  ctx.bezierCurveTo(260, 251, 260, 182, 233, 203)
-  ctx.stroke()
-  const body = ctx.createLinearGradient(100, 150, 220, 260)
-  body.addColorStop(0, "#f7e4c5")
-  body.addColorStop(1, "#d7b28b")
-  ellipse(150, 216, 67, 60, body)
-  ellipse(151, 224, 41, 44, "#f5e3c7")
-  ellipse(109, 260, 29, 15, "#e7cba6", -0.1)
-  ellipse(187, 260, 29, 15, "#e7cba6", 0.1)
-  stroke(
-    [
-      [100, 257],
-      [100, 263],
-    ],
-    "#c4a17a",
-    1.4,
-  )
-  stroke(
-    [
-      [111, 258],
-      [111, 264],
-    ],
-    "#c4a17a",
-    1.4,
-  )
-  stroke(
-    [
-      [180, 258],
-      [180, 264],
-    ],
-    "#c4a17a",
-    1.4,
-  )
-  stroke(
-    [
-      [191, 257],
-      [191, 263],
-    ],
-    "#c4a17a",
-    1.4,
-  )
-  // Ears are rounded, not a separate generated image resource.
-  ctx.fillStyle = "#dfbf96"
-  ctx.beginPath()
-  ctx.moveTo(77, 115)
-  ctx.quadraticCurveTo(52, 24, 81, 37)
-  ctx.quadraticCurveTo(124, 50, 126, 90)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.moveTo(174, 90)
-  ctx.quadraticCurveTo(182, 49, 222, 37)
-  ctx.quadraticCurveTo(247, 29, 224, 116)
-  ctx.fill()
-  ctx.fillStyle = "#c99583"
-  ctx.beginPath()
-  ctx.moveTo(82, 90)
-  ctx.quadraticCurveTo(69, 47, 83, 51)
-  ctx.lineTo(110, 88)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.moveTo(191, 87)
-  ctx.lineTo(221, 51)
-  ctx.quadraticCurveTo(233, 52, 218, 95)
-  ctx.fill()
-  const face = ctx.createRadialGradient(122, 94, 5, 153, 139, 110)
-  face.addColorStop(0, "#fff2d9")
-  face.addColorStop(0.65, "#efd5af")
-  face.addColorStop(1, "#d6ae83")
-  ellipse(151, 130, 88, 74, face)
-  ellipse(100, 154, 33, 28, "#f7e5c9")
-  ellipse(202, 154, 33, 28, "#f7e5c9")
-  // Small tufts and forehead markings.
-  stroke(
-    [
-      [137, 74],
-      [140, 85],
-    ],
-    "#d7b78d",
-    5,
-  )
-  stroke(
-    [
-      [151, 72],
-      [152, 84],
-    ],
-    "#d7b78d",
-    5,
-  )
-  stroke(
-    [
-      [165, 75],
-      [163, 85],
-    ],
-    "#d7b78d",
-    5,
-  )
-  for (const x of [115, 185]) {
-    if (mood === "sleepy" || mood === "happy") {
-      ctx.strokeStyle = "#5d4836"
-      ctx.lineWidth = 4
-      ctx.lineCap = "round"
-      ctx.beginPath()
-      ctx.moveTo(x - 9, 130)
-      ctx.quadraticCurveTo(x, mood === "happy" ? 116 : 139, x + 9, 130)
-      ctx.stroke()
-    } else {
-      ellipse(x, 128, mood === "curious" ? 9 : 7, mood === "sad" ? 7 : 10, "#523e2f")
-      ellipse(x - 2, 124, 2.5, 3, "#fff6df")
-    }
+
+  function panel(x, y, width, height, radius, color) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.roundRect(x, y, width, height, radius)
+    ctx.fill()
   }
-  ellipse(96, 147, 14, 7, "#ddaa9280")
-  ellipse(204, 147, 14, 7, "#ddaa9280")
-  ellipse(145, 151, 13, 10, "#fff0d8")
-  ellipse(159, 151, 13, 10, "#fff0d8")
-  ctx.fillStyle = "#9d7160"
+
+  // Antenna and compact field pack.
+  stroke(
+    [
+      [204, 86],
+      [218, 50],
+    ],
+    armorLight,
+    5,
+  )
+  ellipse(219, 47, 7, 7, signal)
+  ellipse(219, 47, 12, 12, `${signal}24`)
+  panel(64, 151, 34, 88, 10, armorDark)
+  panel(68, 160, 27, 28, 5, "#465048")
+  stroke(
+    [
+      [74, 198],
+      [89, 198],
+    ],
+    signal,
+    3,
+  )
+
+  // Boots and articulated legs.
+  panel(99, 224, 38, 45, 13, armorDark)
+  panel(164, 224, 38, 45, 13, armorDark)
+  panel(91, 254, 51, 22, 9, "#222825")
+  panel(159, 254, 51, 22, 9, "#222825")
+  stroke(
+    [
+      [101, 264],
+      [132, 264],
+    ],
+    armorLight,
+    2,
+  )
+  stroke(
+    [
+      [169, 264],
+      [200, 264],
+    ],
+    armorLight,
+    2,
+  )
+
+  // Torso shell, shoulder plates and utility belt.
+  const torso = ctx.createLinearGradient(96, 142, 206, 248)
+  torso.addColorStop(0, "#4b564e")
+  torso.addColorStop(0.55, "#303833")
+  torso.addColorStop(1, "#202623")
+  panel(91, 142, 118, 108, 31, torso)
+  panel(74, 151, 38, 64, 17, "#3d4740")
+  panel(190, 151, 38, 64, 17, "#3d4740")
+  panel(80, 203, 32, 48, 13, armorDark)
+  panel(190, 203, 32, 48, 13, armorDark)
+  panel(103, 207, 96, 19, 6, armorDark)
+  for (const x of [112, 134, 156, 178]) panel(x, 211, 14, 11, 3, "#566158")
+
+  // Chest identifier and status module.
+  panel(110, 157, 80, 44, 9, "#1c2220")
+  ctx.fillStyle = signal
   ctx.beginPath()
-  ctx.moveTo(145, 142)
-  ctx.quadraticCurveTo(151, 138, 158, 142)
-  ctx.lineTo(152, 149)
+  ctx.moveTo(126, 190)
+  ctx.lineTo(143, 166)
+  ctx.lineTo(151, 190)
+  ctx.lineTo(143, 186)
+  ctx.lineTo(140, 178)
+  ctx.lineTo(133, 188)
   ctx.closePath()
   ctx.fill()
+  panel(158, 167, 21, 4, 2, "#758078")
+  panel(158, 176, 16, 4, 2, signal)
+  panel(158, 185, 11, 4, 2, "#758078")
+
+  // Helmet shell and side audio modules.
+  const helmet = ctx.createLinearGradient(78, 52, 220, 143)
+  helmet.addColorStop(0, "#626e64")
+  helmet.addColorStop(0.45, "#39423c")
+  helmet.addColorStop(1, "#202623")
+  ctx.fillStyle = helmet
+  ctx.beginPath()
+  ctx.moveTo(85, 112)
+  ctx.quadraticCurveTo(85, 50, 150, 40)
+  ctx.quadraticCurveTo(215, 49, 217, 112)
+  ctx.quadraticCurveTo(208, 157, 151, 164)
+  ctx.quadraticCurveTo(94, 157, 85, 112)
+  ctx.fill()
+  panel(69, 94, 31, 49, 12, armorDark)
+  panel(202, 94, 31, 49, 12, armorDark)
+  panel(75, 104, 18, 27, 6, armorLight)
+  panel(209, 104, 18, 27, 6, armorLight)
   stroke(
     [
-      [152, 149],
-      [152, 154],
-      [147, 158],
+      [96, 72],
+      [122, 56],
+      [180, 56],
+      [205, 72],
     ],
-    "#88664e",
-    1.6,
+    "#78847a",
+    3,
   )
+  panel(140, 48, 22, 6, 3, signal)
+
+  // Visor and expression display.
+  const visor = ctx.createLinearGradient(101, 88, 200, 132)
+  visor.addColorStop(0, "#0b0f0e")
+  visor.addColorStop(1, "#19231d")
+  panel(99, 83, 104, 57, 18, visor)
   stroke(
     [
-      [152, 154],
-      [157, 158],
+      [112, 132],
+      [190, 132],
     ],
-    "#88664e",
-    1.6,
+    "#3d4a41",
+    2,
   )
-  for (const sign of [-1, 1])
-    for (let i = 0; i < 2; i++) {
+
+  for (const x of [126, 176]) {
+    if (mood === "happy") {
+      ctx.strokeStyle = signal
+      ctx.lineWidth = 6
+      ctx.beginPath()
+      ctx.moveTo(x - 12, 112)
+      ctx.quadraticCurveTo(x, 98, x + 12, 112)
+      ctx.stroke()
+    } else if (mood === "sleepy") {
       stroke(
         [
-          [151 + sign * 62, 147 + i * 8],
-          [151 + sign * 83, 142 + i * 14],
+          [x - 11, 111],
+          [x + 11, 111],
         ],
-        "#b89a7a",
-        1.4,
+        signal,
+        5,
       )
+    } else if (mood === "sad") {
+      stroke(
+        [
+          [x - 10, x === 126 ? 105 : 113],
+          [x + 10, x === 126 ? 113 : 105],
+        ],
+        signal,
+        5,
+      )
+    } else {
+      ellipse(x, 108, mood === "curious" && x === 176 ? 9 : 7, 9, signal)
+      ellipse(x - 2, 105, 2, 3, "#ecffcf")
     }
-  // Signature rust scarf.
-  ctx.strokeStyle = "#b36243"
-  ctx.lineWidth = 16
-  ctx.beginPath()
-  ctx.moveTo(111, 190)
-  ctx.quadraticCurveTo(153, 204, 192, 190)
-  ctx.stroke()
-  ctx.fillStyle = "#a95336"
-  ctx.beginPath()
-  ctx.moveTo(173, 196)
-  ctx.lineTo(197, 205)
-  ctx.lineTo(188, 233)
-  ctx.lineTo(171, 224)
-  ctx.closePath()
-  ctx.fill()
+  }
+
+  // Chin guard, fasteners and restrained wear marks.
+  panel(122, 145, 58, 13, 6, "#202623")
+  ellipse(91, 118, 3, 3, signal)
+  ellipse(211, 118, 3, 3, signal)
   stroke(
     [
-      [179, 208],
-      [191, 212],
+      [117, 67],
+      [131, 64],
     ],
-    "#d68c65",
+    "#8c978e",
     2,
   )
   stroke(
     [
-      [177, 215],
-      [189, 219],
+      [182, 71],
+      [193, 77],
     ],
-    "#d68c65",
+    "#68746a",
     2,
   )
-  ellipse(102, 220, 17, 30, "#ecd0a9", -0.3)
-  ellipse(202, 220, 17, 30, "#e0bc93", 0.3)
 }

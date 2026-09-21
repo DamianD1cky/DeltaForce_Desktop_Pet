@@ -6,27 +6,39 @@ body.desktop-pet {
   overflow: hidden;
   user-select: none;
 }
+.floating-id {
+  position: absolute;
+  top: 4px;
+  left: 23px;
+  color: #b8ff3d;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 8px;
+  pointer-events: none;
+}
 .floating-bubble {
   position: absolute;
   left: 22px;
   right: 22px;
-  top: 8px;
-  border: 1px solid #e5dccb;
-  background: #fffcf4f2;
-  border-radius: 14px 14px 14px 3px;
-  padding: 10px 14px;
-  font-size: 11px;
+  top: 20px;
+  border: 1px solid #4b564d;
+  border-left: 3px solid #b8ff3d;
+  background: #151a17f2;
+  border-radius: 3px;
+  padding: 9px 12px;
+  color: #dce3da;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 10px;
   line-height: 1.7;
-  max-height: 85px;
+  max-height: 70px;
   overflow: auto;
-  box-shadow: 0 3px 12px #46381910;
+  box-shadow: 0 5px 18px #00000066;
 }
 .floating-character {
   position: absolute;
   left: 35px;
-  top: 100px;
+  top: 91px;
   width: 230px;
-  height: 210px;
+  height: 218px;
   padding: 0;
   cursor: grab;
   touch-action: none;
@@ -40,18 +52,21 @@ body.desktop-pet {
   left: 66px;
   display: flex;
   gap: 5px;
-  background: #fffaf0ed;
-  border: 1px solid #e6ded0;
-  border-radius: 20px;
+  background: #151a17f2;
+  border: 1px solid #4b564d;
+  border-radius: 3px;
   padding: 3px 6px;
+  box-shadow: 0 4px 16px #00000066;
 }
 .floating-controls button {
   width: 29px;
   height: 27px;
-  font-size: 17px;
-  color: #9d795b;
+  color: #aab5ac;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 16px;
 }
 .floating-controls button:hover {
-  background: #eadfce;
-  border-radius: 50%;
+  border-radius: 2px;
+  background: #b8ff3d;
+  color: #10140f;
 }

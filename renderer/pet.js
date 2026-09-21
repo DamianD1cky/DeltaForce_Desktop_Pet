@@ -6,6 +6,7 @@ let down,
   ignored = false
 function update(state) {
   document.body.dataset.mood = state.mood
+  document.getElementById("floating-name").textContent = state.name
   document.getElementById("floating-bubble").textContent = state.bubble
   if ("image" in state) {
     document.getElementById("floating-image").hidden = !state.image

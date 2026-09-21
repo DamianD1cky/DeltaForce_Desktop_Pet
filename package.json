@@ -1,7 +1,7 @@
 {
-  "name": "softspot-desktop-pet",
+  "name": "deltaforce-desktop-pet",
   "version": "0.1.0",
-  "description": "A photo-to-companion desktop pet demo for macOS and Windows",
+  "description": "An unofficial tactical desktop companion inspired by Delta Force",
   "private": true,
   "author": "Damian Dicky",
   "license": "UNLICENSED",
@@ -22,8 +22,8 @@
     "playwright": "1.63.0"
   },
   "build": {
-    "appId": "dev.dickysblog.softspot",
-    "productName": "Softspot",
+    "appId": "dev.dickysblog.delta-companion",
+    "productName": "Delta Companion",
     "directories": {
       "output": "dist"
     },
@@ -34,7 +34,7 @@
     ],
     "asar": true,
     "mac": {
-      "category": "public.app-category.entertainment",
+      "category": "public.app-category.games",
       "identity": null,
       "target": [
         "zip"

@@ -8,11 +8,11 @@ let state,
   memoriesKey = "",
   importing = false
 const labels = {
-  calm: "安心陪伴",
-  happy: "开心冒泡",
-  curious: "好奇张望",
-  sleepy: "困困的",
-  sad: "有点饿了",
+  calm: "链路稳定",
+  happy: "状态良好",
+  curious: "演练模式",
+  sleepy: "低功耗",
+  sad: "补给不足",
 }
 function toast(message) {
   $("toast").textContent = message
@@ -39,18 +39,18 @@ function update(next) {
   $("emotion-label").textContent = `● ${labels[state.mood] || labels.calm}`
   $("asset-kind").textContent = state.imageKind
   $("days").textContent =
-    `相遇第 ${Math.max(1, Math.floor((Date.now() - state.createdAt) / 86400000) + 1)} 天`
-  $("connection").textContent = state.connected ? "AI 已配置" : "本地互动"
+    `部署第 ${Math.max(1, Math.floor((Date.now() - state.createdAt) / 86400000) + 1)} 天`
+  $("connection").textContent = state.connected ? "AI 已配置" : "本地协议"
   $("chat-caption").textContent = state.busyChat
-    ? "正在想怎么回应你…"
+    ? "正在处理消息…"
     : state.connected
-      ? "AI 对话 · 密钥仅保留在本次会话"
-      : "本地回应 · 连接 AI 后可自由聊天"
+      ? "AI 通讯 · 密钥仅保留在当前进程"
+      : "本地协议 · 接入 AI 后可进行自由对话"
   $("send").disabled = state.busyChat
-  $("desktop-button").textContent = state.desktop ? "已在桌面 · 显示 ↗" : "放到桌面 ↗"
-  $("sleep-button").querySelector("b").textContent = state.sleeping ? "叫醒它" : "打个盹"
+  $("desktop-button").textContent = state.desktop ? "已部署 · 显示 ↗" : "部署到桌面 ↗"
+  $("sleep-button").querySelector("b").textContent = state.sleeping ? "恢复" : "休整"
   $("generate").disabled = state.busyImage || importing
-  $("generate").textContent = state.busyImage ? "正在生成，请稍候…" : "AI 转化为绒毛伙伴 ✧"
+  $("generate").textContent = state.busyImage ? "正在生成战术外观…" : "AI 生成战术外观 ✦"
   for (const key of ["energy", "satiety", "affection"]) {
     $(key).value = state[key]
     $(key + "-value").textContent = Math.round(state[key])
@@ -69,13 +69,8 @@ function update(next) {
       const empty = document.createElement("p")
       empty.className = "empty-conversation"
       const mark = document.createElement("span")
-      mark.textContent = "“"
-      empty.append(
-        mark,
-        "不一定要有重要的事。",
-        document.createElement("br"),
-        "今天的云很好看，也可以告诉我。",
-      )
+      mark.textContent = "07"
+      empty.append(mark, "频道在线。", document.createElement("br"), "输入消息或记录一项行动备忘。")
       $("conversation").append(empty)
     }
     for (const item of state.history) {
@@ -84,7 +79,7 @@ function update(next) {
         content = document.createElement("p")
       row.className = `message ${item.role}`
       name.textContent =
-        item.role === "user" ? "你" : `${state.name} · ${item.source || "本地互动"}`
+        item.role === "user" ? "操作员" : `${state.name} · ${item.source || "本地协议"}`
       content.textContent = item.content
       row.append(name, content)
       $("conversation").append(row)
@@ -97,7 +92,7 @@ function update(next) {
     $("memories").replaceChildren()
     if (!state.memories.length) {
       const li = document.createElement("li")
-      li.textContent = "还没有记忆。从你喜欢的东西说起吧。"
+      li.textContent = "暂无档案条目。"
       $("memories").append(li)
     }
     state.memories.forEach((note, index) => {
@@ -106,7 +101,7 @@ function update(next) {
         remove = document.createElement("button")
       copy.textContent = note
       remove.textContent = "×"
-      remove.setAttribute("aria-label", `删除记忆 ${index + 1}`)
+      remove.setAttribute("aria-label", `删除档案 ${index + 1}`)
       remove.addEventListener("click", () => perform(() => api.memory({ remove: index })))
       li.append(copy, remove)
       $("memories").append(li)
@@ -142,7 +137,7 @@ if (!api) {
   $("desktop-button").addEventListener("click", () =>
     perform(async () => {
       await api.desktop()
-      toast("它已经到桌面啦。拖动它可移动位置，菜单栏可找回小窝。")
+      toast("伙伴已部署到桌面。拖动可调整位置，菜单栏可重新打开行动台。")
     }),
   )
   $("chat-form").addEventListener("submit", (event) => {
@@ -169,8 +164,11 @@ if (!api) {
   $("profile-form").addEventListener("submit", (event) => {
     event.preventDefault()
     perform(async () => {
-      await api.profile({ name: $("name-input").value, personality: $("personality-input").value })
-      toast("名字和性格已保存。")
+      await api.profile({
+        name: $("name-input").value,
+        personality: $("personality-input").value,
+      })
+      toast("单位配置已保存。")
     })
   })
   async function upload(file) {
@@ -182,8 +180,8 @@ if (!api) {
       await api.import(prepared)
       toast(
         prepared.cutout
-          ? "图片已导入，已尝试去掉边缘纯色背景。"
-          : "图片已导入，可以互动，也可以继续 AI 转化。",
+          ? "角色素材已导入，并已尝试移除边缘纯色背景。"
+          : "角色素材已导入，可直接使用或继续生成战术外观。",
       )
     })
     importing = false
@@ -243,7 +241,7 @@ if (!api) {
       await api.disconnect()
       $("key").value = ""
       $("settings").close()
-      toast("已切换至本地互动。")
+      toast("已切换至本地协议。")
     }),
   )
 }

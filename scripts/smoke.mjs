@@ -9,7 +9,7 @@ import http from "node:http"
 const root = fileURLToPath(new URL("../", import.meta.url))
 const results = path.join(root, "test-results")
 await mkdir(results, { recursive: true })
-const dataDir = await mkdtemp(path.join(tmpdir(), "softspot-e2e-"))
+const dataDir = await mkdtemp(path.join(tmpdir(), "delta-companion-e2e-"))
 let image
 const fixturePath = path.join(results, "upload-fixture.png")
 const requests = []
@@ -49,7 +49,12 @@ const server = http.createServer(async (req, res) => {
 })
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
 const base = `http://127.0.0.1:${server.address().port}/v1`
-const env = { ...process.env, PET_DATA_DIR: dataDir, PET_AI_KEY: "", OPENAI_API_KEY: "" }
+const env = {
+  ...process.env,
+  PET_DATA_DIR: dataDir,
+  PET_AI_KEY: "",
+  OPENAI_API_KEY: "",
+}
 delete env.ELECTRON_RUN_AS_NODE
 const checks = [],
   errors = []
@@ -92,7 +97,7 @@ try {
   image = Buffer.from(characterData.split(",")[1], "base64")
   assert(image.length > 1000)
   await writeFile(fixturePath, image)
-  checks.push("native Electron launch and procedural mascot")
+  checks.push("native Electron launch and procedural D-07 mascot")
   const before = Number(await page.locator("#affection-value").textContent())
   await page.locator('[data-action="pet"]').click()
   await page.waitForFunction(
@@ -106,8 +111,8 @@ try {
   await page.locator('[data-action="sleep"]').click()
   checks.push("pet / feed / play / sleep / wake actions")
   await send(page, "今天有点累")
-  assert.match(await page.locator(".message.assistant").last().textContent(), /本地互动/)
-  checks.push("offline chat clearly labelled")
+  assert.match(await page.locator(".message.assistant").last().textContent(), /本地协议/)
+  checks.push("offline protocol clearly labelled")
   await page.locator('[data-tab="memory"]').click()
   await page.locator("#memory-input").fill("我喜欢雨天")
   await page.locator("#memory-form button").click()
@@ -115,10 +120,10 @@ try {
   checks.push("explicit persistent memory")
   await page.locator('[data-tab="create"]').click()
   await page.locator("#name-input").fill("团子")
-  await page.locator("#personality-input").selectOption("活泼")
+  await page.locator("#personality-input").selectOption("敏锐")
   await page.locator("#profile-form button").click()
   await page.locator("#upload").setInputFiles(fixturePath)
-  await page.waitForFunction(() => document.querySelector("#asset-kind").textContent !== "内置角色")
+  await page.waitForFunction(() => document.querySelector("#asset-kind").textContent !== "内置终端")
   checks.push("PNG upload, processing, profile edit")
   await configure(page)
   await page.locator("#settings-open").click()
@@ -167,7 +172,9 @@ try {
   pet.on("pageerror", (error) => errors.push(error.message))
   await pet.locator("#floating-image").waitFor()
   const desktop = await app.evaluate(({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows().find((w) => w.getTitle() === "Softspot 桌宠")
+    const win = BrowserWindow.getAllWindows().find(
+      (w) => w.getTitle() === "Delta Companion 桌面伙伴",
+    )
     return {
       top: win.isAlwaysOnTop(),
       size: win.getSize(),
@@ -179,11 +186,7 @@ try {
   assert(desktop.top && desktop.isolation && !desktop.node)
   assert.deepEqual(desktop.size, [300, 350])
   await pet.locator("#feed").click()
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#bubble").textContent.includes("点心") ||
-      document.querySelector("#bubble").textContent.includes("啊呜"),
-  )
+  await page.waitForFunction(() => document.querySelector("#bubble").textContent.includes("补给"))
   const petPng = await pet.screenshot({
     path: path.join(results, "desktop-pet.png"),
     omitBackground: true,
@@ -196,7 +199,7 @@ try {
   checks.push("desktop window screenshot contains a fully transparent corner")
   await pet.locator("#hide").click()
   await page.waitForFunction(() =>
-    document.querySelector("#desktop-button").textContent.includes("放到桌面"),
+    document.querySelector("#desktop-button").textContent.includes("部署到桌面"),
   )
   checks.push("transparent always-on-top native window, cross-window sync, hide")
   await app.close()
@@ -205,13 +208,13 @@ try {
   app = launched.instance
   page = launched.page
   assert.equal(await page.locator("#pet-name").textContent(), "团子")
-  assert.equal(await page.locator("#connection").textContent(), "本地互动")
+  assert.equal(await page.locator("#connection").textContent(), "本地协议")
   assert((await page.locator(".message").count()) >= 6)
   await page.locator('[data-tab="memory"]').click()
   assert.match(await page.locator("#memories").textContent(), /我喜欢雨天/)
-  await page.getByRole("button", { name: "删除记忆 1" }).click()
+  await page.getByRole("button", { name: "删除档案 1" }).click()
   await page.waitForFunction(() =>
-    document.querySelector("#memories").textContent.includes("还没有记忆"),
+    document.querySelector("#memories").textContent.includes("暂无档案"),
   )
   const saved = await readFile(path.join(dataDir, "companion.json"), "utf8")
   assert(!saved.includes("e2e-not-a-real-key"))
