@@ -7,7 +7,7 @@ const petSize = { width: 360, height: 440 }
 let animation = null,
   animationTimer = null,
   animationSequence = 0
-const skills = new Set(["slide", "rose", "cannon"])
+const skills = new Set(["slide", "rose", "cannon", "smoke"])
 
 if (process.env.PET_DATA_DIR) app.setPath("userData", path.resolve(process.env.PET_DATA_DIR))
 const primaryInstance = app.requestSingleInstanceLock()
@@ -49,7 +49,7 @@ const defaults = () => ({
   lastTick: Date.now(),
   lastInteraction: Date.now(),
   createdAt: Date.now(),
-  bubble: "红狼就位。滑铲、金玫瑰、手炮，随时待命。",
+  bubble: "红狼就位。滑铲、金玫瑰、三连发手炮、烟雾弹，随时待命。",
   history: [],
   memories: [],
   imageKind: "红狼 · 蚀金玫瑰",
@@ -128,7 +128,8 @@ function performSkill(payload) {
   const bubbles = {
     slide: "压低身位，滑铲！",
     rose: "金玫瑰握在手中——捏碎，出击！",
-    cannon: "右臂手炮就绪，发射！",
+    cannon: "右臂手炮就绪，三连发！",
+    smoke: "烟雾弹投出，黑金烟幕掩护！",
   }
   setMood("curious", bubbles[name])
   state.lastInteraction = startedAt

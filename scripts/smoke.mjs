@@ -141,6 +141,7 @@ try {
     () => document.querySelector("#asset-kind").textContent !== "红狼 · 蚀金玫瑰",
   )
   assert(await page.locator('[data-skill="slide"]').isDisabled())
+  assert(await page.locator('[data-skill="smoke"]').isDisabled())
   checks.push("PNG upload, processing, profile edit")
   await configure(page)
   await page.locator("#settings-open").click()
@@ -222,12 +223,20 @@ try {
   assert.equal(await pet.locator("#mascot").evaluate((el) => el.getBoundingClientRect().width), 240)
   assert.equal(await pet.locator("#character").evaluate((el) => el.getBoundingClientRect().width), 240)
   for (const clip of Object.values(sprites.clips)) {
-    assert(clip.frameCount >= 36)
+    assert(clip.frameCount >= 80)
     assert.equal(clip.durations.length, clip.frameCount)
-    assert(clip.durations.every((duration) => duration === 40))
+    assert(clip.durations.every((duration) => duration === 20))
     assert.equal(clip.durationMs, clip.durations.reduce((a, b) => a + b, 0))
   }
-  checks.push("240px character in both windows; all five clips have 25fps timelines")
+  assert.equal(await page.locator("[data-skill]").count(), 4)
+  assert.equal(await pet.locator("[data-skill]").count(), 4)
+  assert(await pet.evaluate(() => {
+    const skills = document.querySelector(".floating-skills").getBoundingClientRect()
+    const controls = document.querySelector(".floating-controls").getBoundingClientRect()
+    return skills.right < controls.left && controls.right <= innerWidth
+  }))
+  assert.deepEqual(sprites.clips.cannon.events.map((event) => event.type), ["shot", "shot", "shot"])
+  checks.push("240px character; all six clips have 50fps timelines; four skills fit both windows")
   await page.locator('[data-tab="chat"]').click()
   // Place the pet away from the edge to verify actual slide displacement.
   const slideOrigin = await app.evaluate(({ BrowserWindow, screen }) => {
@@ -238,7 +247,7 @@ try {
     win.setPosition(area.x + 40, area.y + area.height - 460)
     return win.getPosition()
   })
-  for (const name of ["slide", "rose", "cannon"]) {
+  for (const name of ["slide", "rose", "cannon", "smoke"]) {
     await pet.locator(`[data-skill="${name}"]`).click()
     await page.waitForFunction(
       (name) => document.querySelector("#mascot").dataset.clip === name,
@@ -248,19 +257,22 @@ try {
       const c = document.querySelector("#mascot")
       return c.dataset.clip === name && Number(c.dataset.frame) >= keyframe
     }, { name, keyframe: sprites.clips[name].keyframe })
-    const sync = await Promise.all(
-      [page, pet].map((p) =>
-        p.locator("#mascot").evaluate((el) => ({
+    const sync = await app.evaluate(({ BrowserWindow }) => {
+      const script = `(() => {
+        const el = document.querySelector("#mascot")
+        return {
           id: el.dataset.actionId,
           clip: el.dataset.clip,
           frame: Number(el.dataset.frame),
           pixels: el.toDataURL(),
-        })),
-      ),
-    )
+        }
+      })()`
+      return Promise.all(BrowserWindow.getAllWindows().map((win) =>
+        win.webContents.executeJavaScript(script)))
+    })
     assert.equal(sync[0].id, sync[1].id)
     assert.equal(sync[0].clip, name)
-    assert(Math.abs(sync[0].frame - sync[1].frame) <= 1)
+    assert(Math.abs(sync[0].frame - sync[1].frame) <= 2)
     assert.notEqual(sync[0].pixels, characterData)
     await pet.screenshot({
       path: path.join(results, `redwolf-${name}.png`),
@@ -287,13 +299,14 @@ try {
   assert.equal(slideEnd[0] - slideOrigin[0], 150)
   assert.equal(slideEnd[1], slideOrigin[1])
   checks.push(
-    "slide travels 150px; rose crush and right-arm cannon animate and synchronize across windows",
+    "slide travels 150px; rose, triple cannon and black-gold smoke synchronize across windows",
   )
 
-  await page.locator('[data-skill="rose"]').click()
+  await page.locator('[data-skill="smoke"]').click()
   await pet.locator("#sleep").click()
   await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "sleep")
   assert(await page.locator('[data-skill="rose"]').isDisabled())
+  assert(await page.locator('[data-skill="smoke"]').isDisabled())
   assert.equal(await page.evaluate(async () => (await window.companion.get()).animation), null)
   await pet.locator("#sleep").click()
   // Reduced motion keeps one representative frame and does not move the window.
@@ -311,6 +324,13 @@ try {
       .getPosition(),
   )
   assert.deepEqual(still, slideEnd)
+  await page.locator('[data-skill="smoke"]').click()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "smoke")
+  assert.equal(
+    await pet.locator("#mascot").getAttribute("data-frame"),
+    String(sprites.clips.smoke.keyframe),
+  )
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
   await page.emulateMedia({ reducedMotion: "no-preference" })
   checks.push("sleep interrupts actions; reduced motion shows a keyframe without sliding")
 
@@ -336,7 +356,7 @@ try {
   )
   checks.push("slide is clamped at the display edge without teleporting")
 
-  await page.locator('[data-skill="cannon"]').click()
+  await page.locator('[data-skill="smoke"]').click()
   await pet.locator("#hide").click()
   await page.waitForFunction(() =>
     document.querySelector("#desktop-button").textContent.includes("部署到桌面"),

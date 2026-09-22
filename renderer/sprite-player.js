@@ -14,7 +14,8 @@ export function createSpritePlayer(canvas, reportError) {
   function schedule(delay) {
     clearTimeout(timer)
     if (!disposed && !document.hidden && !canvas.hidden) {
-      timer = setTimeout(render, Math.max(16, delay))
+      // An early timer must not postpone the next 20ms frame by another 16ms.
+      timer = setTimeout(render, Math.max(1, delay))
     }
   }
   function render() {

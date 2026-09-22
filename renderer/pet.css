@@ -82,7 +82,7 @@ body.desktop-pet {
   background: #151a17f2;
 }
 .floating-skills button {
-  padding: 7px 8px;
+  padding: 7px 5px;
   font-size: 10px;
   color: var(--accent);
 }
