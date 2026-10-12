@@ -9,34 +9,37 @@
     />
     <title>Delta Companion · 三角洲桌面伙伴</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="theme.css" />
-    <link rel="stylesheet" href="redwolf.css" />
   </head>
   <body>
-    <header class="topbar">
+    <header class="masthead">
       <a class="brand" href="index.html" aria-label="Delta Companion 行动台"
-        ><span class="brand-mark">Δ</span><span class="brand-name">DELTA COMPANION</span
+        ><span class="brand-mark" aria-hidden="true">Δ</span
+        ><span class="brand-name">Delta Companion</span
         ><span class="brand-caption">三角洲桌面伙伴</span></a
       >
-      <div class="top-actions">
+      <div class="masthead-meta">
         <span id="connection" class="connection">本地协议</span
-        ><button id="settings-open" class="text-button">接入 AI <span>↗</span></button>
+        ><button id="settings-open" class="link-button">
+          接入 AI <span aria-hidden="true">→</span>
+        </button>
       </div>
     </header>
     <main class="workspace">
-      <section class="habitat" aria-label="桌宠预览">
-        <div class="habitat-heading">
-          <span class="eyebrow">DELTA FORCE / RED WOLF</span
+      <section class="stage" aria-label="桌宠预览">
+        <div class="meta-row">
+          <span class="index">01</span><span>干员</span><span class="latin">Unit</span
           ><span id="days" class="days">部署第 1 天</span>
         </div>
-        <div class="introduction">
-          <h1>红狼 <span>蚀金玫瑰</span></h1>
-          <p>你的像素干员已就位。</p>
+        <div class="title">
+          <h1>红狼</h1>
+          <p class="subtitle">
+            <span class="latin">Red Wolf</span><span class="slash">/</span>蚀金玫瑰<span
+              class="latin"
+              >Gilded Rose</span
+            >
+          </p>
         </div>
-        <div class="pet-stage">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="speech" id="bubble" aria-live="polite">红狼就位。</div>
+        <div class="figure">
           <button class="pet-touch" id="pet-touch" aria-label="确认伙伴状态">
             <canvas
               class="pet-image pixel-character"
@@ -46,68 +49,102 @@
               aria-label="红狼蚀金玫瑰像素桌宠"
             ></canvas>
             <img class="pet-image" id="pet-image" alt="自定义战术伙伴" draggable="false" hidden />
-            <span class="pet-shadow"></span>
           </button>
-          <span id="emotion-label" class="emotion-label">● 链路稳定</span>
-          <span class="stage-caption">点击角色确认状态</span>
+          <div class="dispatch">
+            <span class="label">通讯 <span class="latin">Dispatch</span></span>
+            <p class="speech" id="bubble" aria-live="polite">红狼就位。</p>
+            <p id="emotion-label" class="emotion-label">链路稳定</p>
+            <p class="stage-caption">点击角色确认状态</p>
+          </div>
         </div>
         <div class="skill-actions" aria-label="红狼专属动作">
           <button data-skill="slide">
-            <span>01 / 移动</span><strong>滑铲</strong><small>压低身位，向前突进</small>
+            <span class="skill-index">01<em>移动</em></span><strong>滑铲</strong
+            ><small>压低身位，向前突进</small>
           </button>
           <button data-skill="rose">
-            <span>02 / 大招</span><strong>捏爆金玫瑰</strong><small>握紧金玫瑰，花瓣迸散</small>
+            <span class="skill-index">02<em>大招</em></span><strong>捏爆金玫瑰</strong
+            ><small>握紧金玫瑰，花瓣迸散</small>
           </button>
           <button data-skill="cannon">
-            <span>03 / 装备</span><strong>右臂手炮</strong><small>三连发，逐发后坐</small>
+            <span class="skill-index">03<em>装备</em></span><strong>右臂手炮</strong
+            ><small>三连发，逐发后坐</small>
           </button>
           <button data-skill="smoke">
-            <span>04 / 掩护</span><strong>烟雾弹</strong><small>黑色烟幕，金粒流动</small>
+            <span class="skill-index">04<em>掩护</em></span><strong>烟雾弹</strong
+            ><small>黑色烟幕，金粒流动</small>
           </button>
         </div>
-        <p id="skill-status" class="skill-status" role="status">专属动作就绪</p>
-        <div class="care-actions" aria-label="伙伴操作">
-          <button data-action="pet"><span>◎</span>状态</button>
-          <button data-action="feed"><span>＋</span>补给</button>
-          <button data-action="play"><span>⌁</span>演练</button>
-          <button data-action="sleep" id="sleep-button"><span>◐</span><b>休整</b></button>
+        <div class="control-row">
+          <p id="skill-status" class="skill-status" role="status">专属动作就绪</p>
+          <div class="care-actions" aria-label="伙伴操作">
+            <button data-action="pet"><span aria-hidden="true">◎</span>状态</button
+            ><button data-action="feed"><span aria-hidden="true">＋</span>补给</button
+            ><button data-action="play"><span aria-hidden="true">⌁</span>演练</button
+            ><button data-action="sleep" id="sleep-button">
+              <span aria-hidden="true">◐</span><b>休整</b>
+            </button>
+          </div>
         </div>
-        <div class="habitat-footer">
-          <span id="asset-kind">红狼 · 蚀金玫瑰</span
-          ><button id="desktop-button" class="primary">部署到桌面 <span>↗</span></button>
+        <div class="stage-footer">
+          <span id="asset-kind" class="asset-kind">红狼 · 蚀金玫瑰</span
+          ><button id="desktop-button" class="primary">部署到桌面 ↗</button>
         </div>
       </section>
       <aside class="companion-panel">
-        <nav class="tabs" aria-label="伙伴设置">
-          <button class="tab active" data-tab="chat" aria-selected="true">通讯</button>
-          <button class="tab" data-tab="create" aria-selected="false">外观</button>
-          <button class="tab" data-tab="memory" aria-selected="false">档案</button>
+        <nav class="tabs" aria-label="伙伴设置" role="tablist">
+          <button
+            class="tab active"
+            data-tab="chat"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-chat"
+          >
+            <span class="index">01</span>通讯
+          </button>
+          <button
+            class="tab"
+            data-tab="create"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-create"
+          >
+            <span class="index">02</span>外观
+          </button>
+          <button
+            class="tab"
+            data-tab="memory"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-memory"
+          >
+            <span class="index">03</span>档案
+          </button>
         </nav>
-        <section id="panel-chat" class="tab-panel">
-          <div class="profile-heading">
-            <div>
-              <span class="eyebrow">ACTIVE UNIT</span>
-              <h2 id="pet-name">红狼</h2>
-            </div>
+        <section id="panel-chat" class="tab-panel" role="tabpanel">
+          <div class="profile">
+            <span class="label">当前单位 <span class="latin">Active Unit</span></span>
+            <h2 id="pet-name">红狼</h2>
             <span id="personality-badge" class="personality-badge">沉着</span>
           </div>
           <div class="vitals">
-            <div>
-              <label for="energy">体能 <span id="energy-value"></span></label
+            <div class="vital" id="vital-energy">
+              <label for="energy">体能</label><span id="energy-value" class="vital-value"></span
               ><progress id="energy" max="100" value="78"></progress>
             </div>
-            <div>
-              <label for="satiety">补给 <span id="satiety-value"></span></label
+            <div class="vital" id="vital-satiety">
+              <label for="satiety">补给</label><span id="satiety-value" class="vital-value"></span
               ><progress id="satiety" max="100" value="72"></progress>
             </div>
-            <div>
-              <label for="affection">默契 <span id="affection-value"></span></label
+            <div class="vital" id="vital-affection">
+              <label for="affection">默契</label
+              ><span id="affection-value" class="vital-value"></span
               ><progress id="affection" max="100" value="35"></progress>
             </div>
           </div>
-          <div class="conversation-heading">
+          <div class="section-heading">
             <h3>通讯记录</h3>
-            <button id="clear-history" class="text-button subtle">清除</button>
+            <button id="clear-history" class="link-button subtle">清除</button>
           </div>
           <div class="conversation" id="conversation" role="log" aria-live="polite"></div>
           <form id="chat-form" class="chat-form">
@@ -122,13 +159,13 @@
           </form>
           <p class="caption" id="chat-caption">本地协议 · 接入 AI 后可进行自由对话</p>
         </section>
-        <section id="panel-create" class="tab-panel" hidden>
-          <span class="eyebrow">UNIT APPEARANCE</span>
+        <section id="panel-create" class="tab-panel" role="tabpanel" hidden>
+          <span class="label">单位外观 <span class="latin">Appearance</span></span>
           <h2>配置角色外观</h2>
           <p class="section-copy">红狼内置专属逐帧动作；导入的图片以静态外观展示。</p>
           <button id="restore-redwolf" class="secondary wide">恢复红狼 · 蚀金玫瑰</button>
           <label class="upload" id="dropzone" for="upload"
-            ><span class="upload-symbol">＋</span><strong>导入角色素材</strong
+            ><span class="upload-symbol" aria-hidden="true">＋</span><strong>导入角色素材</strong
             ><span>PNG / JPG / WebP · 最大 8 MB</span></label
           >
           <input type="file" id="upload" accept="image/png,image/jpeg,image/webp" hidden />
@@ -148,14 +185,14 @@
             <button class="secondary wide" type="submit">保存单位配置</button>
           </form>
           <div class="generation">
-            <button id="generate" class="primary wide">AI 生成战术外观 <span>✦</span></button>
+            <button id="generate" class="primary wide">AI 生成战术外观 ✦</button>
             <p class="caption">
               原图仅在执行生成时发送至所配置的 AI 服务，可能产生费用。失败时保留现有外观。
             </p>
           </div>
         </section>
-        <section id="panel-memory" class="tab-panel" hidden>
-          <span class="eyebrow">LOCAL DOSSIER</span>
+        <section id="panel-memory" class="tab-panel" role="tabpanel" hidden>
+          <span class="label">本地档案 <span class="latin">Dossier</span></span>
           <h2>行动档案</h2>
           <p class="section-copy">
             记录你的偏好与习惯。内容保存在本机，并作为后续 AI 对话的上下文。
@@ -174,7 +211,7 @@
           <p class="caption">最多 8 条，可随时删除；最近 24 条通讯记录也会保存在本机。</p>
         </section>
         <footer class="panel-footer">
-          <span>非官方桌面伴侣 · 不读取游戏数据</span><span>MACOS + WINDOWS</span>
+          <span>非官方桌面伴侣 · 不读取游戏数据</span><span class="latin">macOS + Windows</span>
         </footer>
       </aside>
     </main>
@@ -183,7 +220,7 @@
       <form id="settings-form">
         <div class="dialog-heading">
           <h2>接入 AI</h2>
-          <button type="button" class="text-button" id="settings-close" aria-label="关闭设置">
+          <button type="button" class="link-button" id="settings-close" aria-label="关闭设置">
             ✕
           </button>
         </div>
@@ -206,7 +243,7 @@
           Edits 接口。
         </p>
         <div class="dialog-actions">
-          <button type="button" id="disconnect" class="text-button">断开连接</button
+          <button type="button" id="disconnect" class="link-button subtle">断开连接</button
           ><button type="submit" class="primary">保存设置</button>
         </div>
       </form>

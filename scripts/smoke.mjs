@@ -223,11 +223,25 @@ try {
   assert.equal(await pet.locator("#mascot").evaluate((el) => el.getBoundingClientRect().width), 240)
   assert.equal(await pet.locator("#character").evaluate((el) => el.getBoundingClientRect().width), 240)
   for (const clip of Object.values(sprites.clips)) {
-    assert(clip.frameCount >= 80)
     assert.equal(clip.durations.length, clip.frameCount)
-    assert(clip.durations.every((duration) => duration === 20))
+    assert.equal(clip.cells.length, clip.frameCount)
+    // Identical neighbours merge, so durations are whole 20 ms ticks.
+    assert(clip.durations.every((duration) => duration > 0 && duration % sprites.frameMs === 0))
     assert.equal(clip.durationMs, clip.durations.reduce((a, b) => a + b, 0))
+    const [x, y, w, h] = clip.cell
+    assert(x >= 0 && y >= 0 && x + w <= sprites.frameWidth && y + h <= sprites.frameHeight)
+    assert(clip.keyframe >= 0 && clip.keyframe < clip.frameCount)
   }
+  assert.deepEqual(Object.keys(sprites.clips).sort(), [
+    "cannon",
+    "doze",
+    "idle",
+    "rose",
+    "sleep",
+    "slide",
+    "smoke",
+    "wake",
+  ])
   assert.equal(await page.locator("[data-skill]").count(), 4)
   assert.equal(await pet.locator("[data-skill]").count(), 4)
   assert(await pet.evaluate(() => {
@@ -236,7 +250,7 @@ try {
     return skills.right < controls.left && controls.right <= innerWidth
   }))
   assert.deepEqual(sprites.clips.cannon.events.map((event) => event.type), ["shot", "shot", "shot"])
-  checks.push("240px character; all six clips have 50fps timelines; four skills fit both windows")
+  checks.push("240px character; all eight clips sit on the 50fps grid; four skills fit both windows")
   await page.locator('[data-tab="chat"]').click()
   // Place the pet away from the edge to verify actual slide displacement.
   const slideOrigin = await app.evaluate(({ BrowserWindow, screen }) => {
@@ -290,6 +304,8 @@ try {
     })
     assert(rejected)
     await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
+    // Every action ends on idle frame 0, and the idle loop restarts there.
+    assert(Number(await pet.locator("#mascot").getAttribute("data-frame")) <= 3)
   }
   const slideEnd = await app.evaluate(({ BrowserWindow }) =>
     BrowserWindow.getAllWindows()
@@ -304,11 +320,14 @@ try {
 
   await page.locator('[data-skill="smoke"]').click()
   await pet.locator("#sleep").click()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "doze")
   await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "sleep")
   assert(await page.locator('[data-skill="rose"]').isDisabled())
   assert(await page.locator('[data-skill="smoke"]').isDisabled())
   assert.equal(await page.evaluate(async () => (await window.companion.get()).animation), null)
   await pet.locator("#sleep").click()
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "wake")
+  await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
   // Reduced motion keeps one representative frame and does not move the window.
   await page.emulateMedia({ reducedMotion: "reduce" })
   await page.locator('[data-skill="slide"]').click()
@@ -332,7 +351,9 @@ try {
   )
   await pet.waitForFunction(() => document.querySelector("#mascot").dataset.clip === "idle")
   await page.emulateMedia({ reducedMotion: "no-preference" })
-  checks.push("sleep interrupts actions; reduced motion shows a keyframe without sliding")
+  checks.push(
+    "sleep interrupts actions; doze and wake transitions; reduced motion shows a keyframe without sliding",
+  )
 
   // At the right edge, never teleport backwards to create a runway.
   const edge = await app.evaluate(({ BrowserWindow, screen }) => {

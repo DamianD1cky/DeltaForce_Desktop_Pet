@@ -6,7 +6,9 @@ const sprites = require("../asset/sprites/redwolf-gilded-rose/animations.json")
 const petSize = { width: 360, height: 440 }
 let animation = null,
   animationTimer = null,
-  animationSequence = 0
+  finishTimer = null,
+  animationSequence = 0,
+  loopEpoch = Date.now()
 const skills = new Set(["slide", "rose", "cannon", "smoke"])
 
 if (process.env.PET_DATA_DIR) app.setPath("userData", path.resolve(process.env.PET_DATA_DIR))
@@ -80,6 +82,7 @@ function snapshot(withImage = false) {
     busyChat,
     busyImage,
     animation,
+    loopEpoch,
     sprites,
   }
   if (withImage)
@@ -99,8 +102,11 @@ function setMood(mood, bubble) {
 }
 function finishAnimation(notify = true) {
   const wasMoving = animation?.name === "slide"
+  // Idle and sleep loops resume from frame 0 where the clip ended or was cut.
+  if (animation) loopEpoch = Math.min(Date.now(), animation.startedAt + animation.durationMs)
   clearInterval(animationTimer)
-  animationTimer = null
+  clearTimeout(finishTimer)
+  animationTimer = finishTimer = null
   animation = null
   if (wasMoving && pet && !pet.isDestroyed()) {
     const [x, y] = pet.getPosition()
@@ -109,13 +115,16 @@ function finishAnimation(notify = true) {
   }
   if (notify) broadcast()
 }
-function performSkill(payload) {
-  const name = payload?.name
-  if (!skills.has(name)) throw new Error("未知角色动作。")
-  if (state.hasImage) throw new Error("专属动作属于红狼，请先在外观中恢复红狼。")
-  if (state.sleeping) throw new Error("红狼正在休息，请先叫醒他。")
-  if (animation) throw new Error("当前动作尚未结束。")
-  if (dragTimer) throw new Error("请先放下角色，再使用动作。")
+// Window travel follows the slide's sampled speed curve: push-off, then friction.
+function travel(movement, elapsed) {
+  const t = Math.max(0, Math.min(1, (elapsed - movement.start) / (movement.end - movement.start)))
+  const samples = movement.samples
+  if (!samples) return 1 - (1 - t) ** 2
+  const i = Math.min(samples.length - 2, Math.floor(t * (samples.length - 1)))
+  const f = t * (samples.length - 1) - i
+  return samples[i] + (samples[i + 1] - samples[i]) * f
+}
+function startAnimation(name, reducedMotion) {
   const clip = sprites.clips[name]
   const startedAt = Date.now()
   animation = {
@@ -123,8 +132,38 @@ function performSkill(payload) {
     name,
     startedAt,
     durationMs: clip.durationMs,
-    reducedMotion: payload?.reducedMotion === true,
+    reducedMotion,
   }
+  // Clamp travel at the current display edge without teleporting the pet.
+  if (clip.movement && !reducedMotion && pet?.isVisible()) {
+    const [x, y] = pet.getPosition()
+    const area = screen.getDisplayMatching({ x, y, ...petSize }).workArea
+    const maxX = area.x + area.width - petSize.width
+    const distance = Math.min(clip.movement.distance, Math.max(0, maxX - x))
+    const origin = clampPosition({ x, y })
+    const destination = clampPosition({ x: origin.x + distance, y: origin.y })
+    pet.setPosition(origin.x, origin.y, false)
+    animationTimer = setInterval(() => {
+      if (!animation || !pet || pet.isDestroyed()) return
+      const progress = travel(clip.movement, Date.now() - startedAt)
+      const position = clampPosition({
+        x: origin.x + (destination.x - origin.x) * progress,
+        y: origin.y,
+      })
+      pet.setPosition(position.x, position.y, false)
+    }, 16)
+  }
+  finishTimer = setTimeout(() => finishAnimation(), clip.durationMs)
+  return animation
+}
+function performSkill(payload) {
+  const name = payload?.name
+  if (!skills.has(name)) throw new Error("未知角色动作。")
+  if (state.hasImage) throw new Error("专属动作属于红狼，请先在外观中恢复红狼。")
+  if (state.sleeping) throw new Error("红狼正在休息，请先叫醒他。")
+  if (animation) throw new Error("当前动作尚未结束。")
+  if (dragTimer) throw new Error("请先放下角色，再使用动作。")
+  const started = startAnimation(name, payload?.reducedMotion === true)
   const bubbles = {
     slide: "压低身位，滑铲！",
     rose: "金玫瑰握在手中——捏碎，出击！",
@@ -132,37 +171,11 @@ function performSkill(payload) {
     smoke: "烟雾弹投出，黑金烟幕掩护！",
   }
   setMood("curious", bubbles[name])
-  state.lastInteraction = startedAt
+  state.lastInteraction = started.startedAt
   state.affection = clamp(state.affection + 1)
-  // Clamp travel at the current display edge without teleporting the pet.
-  let origin = null,
-    destination = null
-  if (name === "slide" && !animation.reducedMotion && pet?.isVisible()) {
-    const [x, y] = pet.getPosition()
-    const area = screen.getDisplayMatching({ x, y, ...petSize }).workArea
-    const maxX = area.x + area.width - petSize.width
-    const distance = Math.min(clip.movement.distance, Math.max(0, maxX - x))
-    origin = clampPosition({ x, y })
-    destination = clampPosition({ x: origin.x + distance, y: origin.y })
-    pet.setPosition(origin.x, origin.y, false)
-  }
   save()
   broadcast()
-  animationTimer = setInterval(() => {
-    if (!animation) return
-    const elapsed = Date.now() - startedAt
-    if (origin && pet && !pet.isDestroyed()) {
-      const { start, end } = clip.movement
-      const t = Math.max(0, Math.min(1, (elapsed - start) / (end - start)))
-      const position = clampPosition({
-        x: origin.x + (destination.x - origin.x) * (1 - (1 - t) ** 2),
-        y: origin.y,
-      })
-      pet.setPosition(position.x, position.y, false)
-    }
-    if (elapsed >= clip.durationMs) finishAnimation()
-  }, 16)
-  return animation
+  return started
 }
 function tick() {
   const now = Date.now()
@@ -203,6 +216,8 @@ function interact(action) {
         state.sleeping ? "sleepy" : "calm",
         state.sleeping ? "休息一下，你也活动活动。" : "休整结束，继续行动。",
       )
+      // Red Wolf dozes off or wakes through a short clip instead of snapping.
+      if (!state.hasImage) startAnimation(state.sleeping ? "doze" : "wake", false)
       break
     default:
       throw new Error("未知互动")
@@ -236,7 +251,7 @@ function showStudio() {
         minWidth: 850,
         minHeight: 660,
         title: "Delta Companion · 三角洲桌面伙伴",
-        backgroundColor: "#0e1110",
+        backgroundColor: "#f2f1ed",
       },
       "index.html",
     )

@@ -38,11 +38,12 @@ function update(next) {
   $("pet-name").textContent = state.name
   $("personality-badge").textContent = state.personality
   $("bubble").textContent = state.bubble
-  $("emotion-label").textContent = `● ${labels[state.mood] || labels.calm}`
+  $("emotion-label").textContent = labels[state.mood] || labels.calm
   $("asset-kind").textContent = state.imageKind
   $("days").textContent =
     `部署第 ${Math.max(1, Math.floor((Date.now() - state.createdAt) / 86400000) + 1)} 天`
   $("connection").textContent = state.connected ? "AI 已配置" : "本地协议"
+  document.body.dataset.connected = String(state.connected)
   $("chat-caption").textContent = state.busyChat
     ? "正在处理消息…"
     : state.connected
@@ -58,6 +59,7 @@ function update(next) {
   for (const key of ["energy", "satiety", "affection"]) {
     $(key).value = state[key]
     $(key + "-value").textContent = Math.round(state[key])
+    $("vital-" + key).dataset.low = String(state[key] < 25)
   }
   if ("image" in next) {
     $("pet-image").hidden = !next.image
@@ -96,6 +98,7 @@ function update(next) {
     $("memories").replaceChildren()
     if (!state.memories.length) {
       const li = document.createElement("li")
+      li.className = "empty"
       li.textContent = "暂无档案条目。"
       $("memories").append(li)
     }

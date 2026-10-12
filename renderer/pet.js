@@ -2,7 +2,7 @@ import { createSpritePlayer, bindSkillControls, updateSkillControls } from "./sp
 const api = window.companion
 const character = document.getElementById("character")
 const player = createSpritePlayer(document.getElementById("mascot"), (message) => {
-  document.getElementById("floating-bubble").textContent = message
+  document.getElementById("floating-text").textContent = message
 })
 window.addEventListener("pagehide", () => player.dispose(), { once: true })
 let down,
@@ -13,7 +13,7 @@ function update(state) {
   document.body.dataset.character = state.hasImage ? "custom" : "redwolf"
   updateSkillControls(state)
   document.getElementById("floating-name").textContent = state.name
-  document.getElementById("floating-bubble").textContent = state.bubble
+  document.getElementById("floating-text").textContent = state.bubble
   if ("image" in state) {
     document.getElementById("floating-image").hidden = !state.image
     document.getElementById("mascot").hidden = Boolean(state.image)
@@ -23,7 +23,7 @@ function update(state) {
 }
 function run(promise) {
   promise.catch((error) => {
-    document.getElementById("floating-bubble").textContent = error.message
+    document.getElementById("floating-text").textContent = error.message
   })
 }
 api.subscribe(update)

@@ -14,24 +14,25 @@ export function createSpritePlayer(canvas, reportError) {
   function schedule(delay) {
     clearTimeout(timer)
     if (!disposed && !document.hidden && !canvas.hidden) {
-      // An early timer must not postpone the next 20ms frame by another 16ms.
+      // An early timer must not postpone the next frame by another 16ms.
       timer = setTimeout(render, Math.max(1, delay))
     }
   }
   function render() {
     clearTimeout(timer)
     if (disposed || !manifest || canvas.hidden || document.hidden) return
-    const active =
-      state.animation && Date.now() < state.animation.startedAt + state.animation.durationMs
-        ? state.animation
-        : null
+    const now = Date.now()
+    const ending = state.animation ? state.animation.startedAt + state.animation.durationMs : 0
+    const active = state.animation && now < ending ? state.animation : null
     const name = active?.name || (state.sleeping ? "sleep" : "idle")
     const clip = manifest.clips[name]
     if (!clip) return
     const reduced = media.matches || active?.reducedMotion
+    // Loops restart where the previous clip ended; every action ends on loop frame 0.
+    const epoch = state.animation ? ending : state.loopEpoch || 0
     const elapsed = active
-      ? Math.max(0, Date.now() - active.startedAt)
-      : Date.now() % clip.durationMs
+      ? Math.max(0, now - active.startedAt)
+      : (((now - epoch) % clip.durationMs) + clip.durationMs) % clip.durationMs
     let frame = 0,
       end = clip.durations[0]
     while (frame < clip.frameCount - 1 && elapsed >= end) end += clip.durations[++frame]
@@ -39,18 +40,20 @@ export function createSpritePlayer(canvas, reportError) {
     const image = images.get(name)
     const key = `${name}:${frame}`
     if (image?.complete && image.naturalWidth && key !== lastKey) {
+      const [x, y, w, h] = clip.cell
+      const cell = clip.cells[frame]
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.imageSmoothingEnabled = false
       ctx.drawImage(
         image,
-        (frame % clip.columns) * canvas.width,
-        Math.floor(frame / clip.columns) * canvas.height,
-        canvas.width,
-        canvas.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height,
+        (cell % clip.columns) * w,
+        Math.floor(cell / clip.columns) * h,
+        w,
+        h,
+        x,
+        y,
+        w,
+        h,
       )
       canvas.dataset.clip = name
       canvas.dataset.frame = String(frame)
@@ -59,8 +62,8 @@ export function createSpritePlayer(canvas, reportError) {
       lastKey = key
     }
     if (reduced) {
-      if (active) schedule(active.startedAt + active.durationMs - Date.now() + 1)
-    } else schedule(end - elapsed)
+      if (active) schedule(ending - now + 1)
+    } else schedule(active ? Math.min(end - elapsed, ending - now + 1) : end - elapsed)
   }
   function wake() {
     lastKey = ""
@@ -107,10 +110,10 @@ export function updateSkillControls(state) {
   if (status)
     status.textContent = state.hasImage
       ? "恢复红狼后可使用专属动作"
-      : state.sleeping
-        ? "休息中 · 叫醒后可使用动作"
-        : state.animation
-          ? `正在${state.sprites.clips[state.animation.name].label}…`
+      : state.animation
+        ? `正在${state.sprites.clips[state.animation.name].label}…`
+        : state.sleeping
+          ? "休息中 · 叫醒后可使用动作"
           : "专属动作就绪"
 }
 
